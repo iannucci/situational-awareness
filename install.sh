@@ -160,16 +160,55 @@ systemctl enable emergency-response
 systemctl start emergency-response
 
 echo -e "${BLUE}Configuring Nginx...${NC}"
+# Ensure nginx.conf exists before copying
+if [[ ! -f "nginx.conf" ]]; then
+    echo -e "${YELLOW}nginx.conf not found, creating default configuration...${NC}"
+    cat > nginx.conf << 'NGINXEOF'
+server {
+    listen 80;
+    server_name _;
+    
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri $uri/ @api;
+    }
+    
+    location @api {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    
+    location /api {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    
+    location /ws {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+NGINXEOF
+fi
+
 # Copy nginx configuration
-cp nginx.conf /etc/nginx/sites-available/emergency-response 2>/dev/null || cp nginx.conf /etc/nginx/conf.d/emergency-response.conf
-
-# Update paths in nginx config
-sed -i 's|/usr/share/nginx/html|'$(pwd)'/src/web|g' /etc/nginx/sites-available/emergency-response 2>/dev/null || sed -i 's|/usr/share/nginx/html|'$(pwd)'/src/web|g' /etc/nginx/conf.d/emergency-response.conf
-
-# Enable site (Ubuntu/Debian)
-if [[ -d /etc/nginx/sites-enabled ]]; then
+if [[ -d /etc/nginx/sites-available ]]; then
+    # Ubuntu/Debian style
+    cp nginx.conf /etc/nginx/sites-available/emergency-response
+    sed -i 's|/usr/share/nginx/html|'$(pwd)'/src/web|g' /etc/nginx/sites-available/emergency-response
+    sed -i 's|http://api:3000|http://127.0.0.1:3000|g' /etc/nginx/sites-available/emergency-response
     ln -sf /etc/nginx/sites-available/emergency-response /etc/nginx/sites-enabled/
     rm -f /etc/nginx/sites-enabled/default
+else
+    # RHEL/CentOS style
+    cp nginx.conf /etc/nginx/conf.d/emergency-response.conf
+    sed -i 's|/usr/share/nginx/html|'$(pwd)'/src/web|g' /etc/nginx/conf.d/emergency-response.conf
+    sed -i 's|http://api:3000|http://127.0.0.1:3000|g' /etc/nginx/conf.d/emergency-response.conf
 fi
 
 # Test and restart nginx
