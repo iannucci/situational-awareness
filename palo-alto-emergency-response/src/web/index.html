@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Response Mapping System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            background: #1a1a1a;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        .container { display: flex; height: 100vh; }
+        
+        .query-panel {
+            width: 350px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-right: 3px solid #3498db;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .map-container { flex: 1; position: relative; background: #0f1419; }
+        #map { width: 100%; height: 100%; }
+        
+        .panel-header {
+            background: rgba(52, 73, 94, 0.8);
+            padding: 15px;
+            margin: -20px -20px 20px -20px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .panel-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ecf0f1;
+            margin-bottom: 5px;
+        }
+        
+        .query-section { margin-bottom: 25px; }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #34495e;
+        }
+        
+        .query-button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+        
+        .query-button:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+            transform: translateY(-1px);
+        }
+        
+        .query-button.status { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
+        .query-button.location { background: linear-gradient(135deg, #27ae60 0%, #229954 100%); }
+        
+        .legend {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.9);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1000;
+            border: 1px solid #3498db;
+        }
+        
+        .legend-title { font-weight: bold; margin-bottom: 10px; color: #3498db; }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+        
+        .legend-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            border-radius: 50%;
+        }
+        
+        .incident { background: #e74c3c; }
+        .personnel { background: #3498db; }
+        .shelter { background: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="query-panel">
+            <div class="panel-header">
+                <div class="panel-title">Emergency Response System</div>
+                <div style="font-size: 12px; color: #bdc3c7;">Palo Alto, California</div>
+            </div>
+            
+            <div class="query-section">
+                <div class="section-title">🚨 Incident Queries</div>
+                <button class="query-button" onclick="loadIncidents()">Active Incidents</button>
+                <button class="query-button" onclick="loadIncidentsByType()">Incidents by Type</button>
+            </div>
+            
+            <div class="query-section">
+                <div class="section-title">👥 Personnel</div>
+                <button class="query-button status" onclick="loadPersonnel()">Personnel Status</button>
+                <button class="query-button status" onclick="loadUnits()">Unit Locations</button>
+            </div>
+            
+            <div class="query-section">
+                <div class="section-title">🏠 Resources</div>
+                <button class="query-button location" onclick="loadShelters()">Available Shelters</button>
+                <button class="query-button location" onclick="loadResources()">Resource Centers</button>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="map"></div>
+            
+            <div class="legend">
+                <div class="legend-title">Map Legend</div>
+                <div class="legend-item">
+                    <div class="legend-icon incident"></div>
+                    <span>Active Incidents</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon personnel"></div>
+                    <span>Personnel</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon shelter"></div>
+                    <span>Shelters/Resources</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
