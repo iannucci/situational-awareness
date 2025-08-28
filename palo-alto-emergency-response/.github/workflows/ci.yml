@@ -1,0 +1,89 @@
+name: Emergency Response CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_emergency
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js 18
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: src/api/package-lock.json
+    
+    - name: Install API dependencies
+      working-directory: src/api
+      run: npm ci
+    
+    - name: Run API tests
+      working-directory: src/api
+      run: npm test
+      env:
+        NODE_ENV: test
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_NAME: test_emergency
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+    
+    - name: Test API health endpoint
+      run: |
+        cd src/api
+        npm start &
+        sleep 10
+        curl -f http://localhost:3000/api/health
+        pkill -f "node server.js"
+    
+    - name: Test Docker build
+      run: docker build -t emergency-api ./src/api
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run security audit
+      working-directory: src/api
+      run: npm audit --audit-level high
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Test Docker Compose
+      run: |
+        echo "DB_PASSWORD=test_password_123" > .env
+        docker-compose -f docker-compose.yml config
+        docker-compose up -d database
+        sleep 30
+        docker-compose down
