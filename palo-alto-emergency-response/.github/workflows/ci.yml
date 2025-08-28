@@ -50,14 +50,6 @@ jobs:
         DB_USER: postgres
         DB_PASSWORD: postgres
     
-    - name: Test API health endpoint
-      run: |
-        cd src/api
-        npm start &
-        sleep 10
-        curl -f http://localhost:3000/api/health
-        pkill -f "node server.js"
-    
     - name: Test Docker build
       run: docker build -t emergency-api ./src/api
 

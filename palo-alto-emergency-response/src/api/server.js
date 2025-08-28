@@ -56,7 +56,6 @@ const config = {
         connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 30000,
         max: 20,
         idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
     }
 };
 
@@ -232,21 +231,6 @@ wss.on("connection", (ws, req) => {
     });
 });
 
-// Broadcast updates to WebSocket clients
-function broadcastUpdate(data) {
-    const message = JSON.stringify({
-        type: "update",
-        data: data,
-        timestamp: new Date().toISOString()
-    });
-    
-    wsClients.forEach(ws => {
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.send(message);
-        }
-    });
-}
-
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error("🚨 API Error:", err);
@@ -314,4 +298,4 @@ server.listen(config.port, () => {
     `);
 });
 
-module.exports = { app, server, pool, broadcastUpdate };
+module.exports = { app, server, pool };

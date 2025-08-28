@@ -14,11 +14,11 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-# Get the absolute path of the project directory
+# FIXED: Get the absolute path of the project directory
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 echo -e "${BLUE}Project root: $PROJECT_ROOT${NC}"
 
-# Verify we're in the correct directory
+# FIXED: Verify we're in the correct directory
 if [[ ! -f "$PROJECT_ROOT/database/schema.sql" ]]; then
     echo -e "${RED}Error: database/schema.sql not found at $PROJECT_ROOT/database/schema.sql${NC}"
     echo -e "${RED}Please ensure you're running this script from the project root directory${NC}"
@@ -113,7 +113,7 @@ sudo -u postgres psql -d palo_alto_emergency -c "GRANT ALL PRIVILEGES ON ALL SEQ
 sudo -u postgres psql -d palo_alto_emergency -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO emergency_user;" || true
 sudo -u postgres psql -d palo_alto_emergency -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO emergency_user;" || true
 
-# Load database schema with absolute path
+# FIXED: Load database schema with absolute path
 echo -e "${BLUE}Loading database schema from $PROJECT_ROOT/database/schema.sql...${NC}"
 if [[ -f "$PROJECT_ROOT/database/schema.sql" ]]; then
     sudo -u postgres psql -d palo_alto_emergency -f "$PROJECT_ROOT/database/schema.sql" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
@@ -159,7 +159,7 @@ fi
 mkdir -p "$PROJECT_ROOT/logs"
 chmod 755 "$PROJECT_ROOT/logs"
 
-# Create environment file
+# FIXED: Create environment file
 cat > "$PROJECT_ROOT/.env" << ENVFILE
 NODE_ENV=production
 PORT=3000
@@ -174,7 +174,7 @@ ENVFILE
 
 chmod 600 "$PROJECT_ROOT/.env"
 
-# Create systemd service file
+# Create systemd service file with proper environment handling
 cat > /etc/systemd/system/emergency-response.service << SERVICEFILE
 [Unit]
 Description=Palo Alto Emergency Response System
@@ -194,7 +194,7 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=emergency-response
 
-# Environment file
+# FIXED: Environment file
 EnvironmentFile=$PROJECT_ROOT/.env
 
 # Security restrictions
@@ -364,18 +364,6 @@ echo "• Stop:    sudo systemctl stop emergency-response"
 echo "• Restart: sudo systemctl restart emergency-response"
 echo "• Status:  sudo systemctl status emergency-response"
 echo "• Logs:    sudo journalctl -u emergency-response -f"
-echo ""
-echo -e "${BLUE}Database Management:${NC}"
-echo "• PostgreSQL Service: sudo systemctl status $PG_SERVICE"
-echo "• Connect to DB: sudo -u postgres psql -d palo_alto_emergency"
-echo "• Test DB: psql -h localhost -d palo_alto_emergency -U emergency_user"
-echo "• Backup Script: /usr/local/bin/emergency-backup.sh"
-echo ""
-echo -e "${BLUE}Configuration Files:${NC}"
-echo "• Environment: $PROJECT_ROOT/.env"
-echo "• Service: /etc/systemd/system/emergency-response.service"
-echo "• Database Config: /etc/emergency-response.conf"
-echo "• Backup Script: /usr/local/bin/emergency-backup.sh"
 echo ""
 echo -e "${BLUE}Troubleshooting:${NC}"
 echo "• Service logs: sudo journalctl -u emergency-response -f"

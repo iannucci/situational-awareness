@@ -1,5 +1,5 @@
 -- Emergency Response Database Schema for Palo Alto
--- PostgreSQL 17 with PostGIS and TimescaleDB extensions
+-- PostgreSQL 16 with PostGIS and TimescaleDB extensions
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS postgis;
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS service_boundaries (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Indexes for performance (PostgreSQL 17 compatible)
+-- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_incidents_location ON incidents USING GIST (location);
 CREATE INDEX IF NOT EXISTS idx_incidents_reported_at ON incidents USING BTREE (reported_at);
 CREATE INDEX IF NOT EXISTS idx_incidents_status ON incidents USING BTREE (status);
@@ -171,7 +171,7 @@ CREATE INDEX IF NOT EXISTS idx_shelters_status ON shelters USING BTREE (operatio
 
 CREATE INDEX IF NOT EXISTS idx_service_boundaries_geometry ON service_boundaries USING GIST (boundary_geometry);
 
--- Functions for PostgreSQL 17
+-- Functions
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -201,7 +201,7 @@ BEGIN
         FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 END $$;
 
--- Views (PostgreSQL 17 compatible)
+-- Views
 CREATE OR REPLACE VIEW active_incidents_view AS
 SELECT 
     i.id,
@@ -218,65 +218,6 @@ SELECT
 FROM incidents i
 JOIN incident_types it ON i.incident_type_id = it.id
 WHERE i.status IN ('Active', 'In Progress');
-
--- PostgreSQL 17 compatible spatial functions
-CREATE OR REPLACE FUNCTION get_nearest_units(
-    incident_location GEOMETRY,
-    max_units INTEGER DEFAULT 5,
-    unit_status VARCHAR DEFAULT 'Available'
-)
-RETURNS TABLE (
-    unit_id VARCHAR,
-    unit_type VARCHAR,
-    distance_meters DOUBLE PRECISION,
-    estimated_travel_time_minutes DOUBLE PRECISION
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT 
-        u.id,
-        ut.type_name,
-        ST_Distance(ul.location::geography, incident_location::geography) as distance_meters,
-        (ST_Distance(ul.location::geography, incident_location::geography) / 1609.34 / 35 * 60) as estimated_travel_time_minutes
-    FROM units u
-    JOIN unit_types ut ON u.unit_type_id = ut.id
-    JOIN LATERAL (
-        SELECT location 
-        FROM unit_locations 
-        WHERE unit_id = u.id 
-        ORDER BY timestamp DESC 
-        LIMIT 1
-    ) ul ON true
-    WHERE u.status = unit_status
-    ORDER BY ST_Distance(ul.location, incident_location)
-    LIMIT max_units;
-END;
-$$ LANGUAGE plpgsql;
-
--- Function to check if point is within service area
-CREATE OR REPLACE FUNCTION is_within_service_area(check_location GEOMETRY)
-RETURNS BOOLEAN AS $$
-DECLARE
-    within_boundary BOOLEAN;
-BEGIN
-    SELECT EXISTS (
-        SELECT 1 FROM service_boundaries 
-        WHERE boundary_type = 'City Limits' 
-        AND ST_Within(check_location, boundary_geometry)
-        AND (effective_date <= CURRENT_DATE)
-    ) INTO within_boundary;
-    
-    RETURN within_boundary;
-END;
-$$ LANGUAGE plpgsql;
-
--- Insert Palo Alto service boundary
-INSERT INTO service_boundaries (boundary_name, boundary_type, jurisdiction, boundary_geometry) VALUES (
-    'Palo Alto City Limits',
-    'City Limits',
-    'City of Palo Alto',
-    ST_GeomFromText('POLYGON((-122.1965 37.3894, -122.0895 37.3894, -122.0895 37.4944, -122.1965 37.4944, -122.1965 37.3894))', 4326)
-) ON CONFLICT DO NOTHING;
 
 -- Sample data
 INSERT INTO units (id, unit_type_id, call_sign, station_name, station_location) VALUES 
@@ -305,34 +246,12 @@ INSERT INTO unit_locations (unit_id, location, status, activity) VALUES
 ('PAPD-01', ST_GeomFromText('POINT(-122.1560 37.4419)', 4326), 'On Patrol', 'Routine Patrol')
 ON CONFLICT (unit_id, timestamp) DO NOTHING;
 
--- Set up data retention policies for TimescaleDB (if available)
-DO $$
-BEGIN
-    -- Try to set retention policies, ignore if TimescaleDB not available
-    BEGIN
-        PERFORM add_retention_policy('unit_locations', INTERVAL '30 days');
-        PERFORM add_retention_policy('incidents', INTERVAL '7 years');
-        RAISE NOTICE 'Added TimescaleDB retention policies';
-    EXCEPTION 
-        WHEN OTHERS THEN
-            RAISE NOTICE 'TimescaleDB retention policies not set: %', SQLERRM;
-    END;
-END $$;
-
 -- Create completion notification
 DO $$
 BEGIN
     RAISE NOTICE '=======================================================';
     RAISE NOTICE 'Emergency Response Database Schema Setup Complete!';
-    RAISE NOTICE '=======================================================';
     RAISE NOTICE 'Database: Palo Alto Emergency Response System';
-    RAISE NOTICE 'PostgreSQL Version: Compatible with PostgreSQL 17';
-    RAISE NOTICE 'Extensions: PostGIS enabled, TimescaleDB attempted';
-    RAISE NOTICE 'Tables created: % main tables with indexes', (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE');
-    RAISE NOTICE 'Views created: % operational views', (SELECT COUNT(*) FROM information_schema.views WHERE table_schema = 'public');
-    RAISE NOTICE 'Functions created: Helper functions for spatial queries';
-    RAISE NOTICE 'Sample data: Palo Alto units, stations, and shelters loaded';
-    RAISE NOTICE '=======================================================';
     RAISE NOTICE 'Ready for emergency response operations!';
     RAISE NOTICE '=======================================================';
 END $$;
