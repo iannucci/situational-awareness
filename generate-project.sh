@@ -1959,33 +1959,180 @@ chown -R www-data:www-data "$WEB_ROOT" 2>/dev/null || chown -R nginx:nginx "$WEB
 chmod -R 644 "$WEB_ROOT"
 find "$WEB_ROOT" -type d -exec chmod 755 {} \;
 
-# Copy and configure nginx
-if [[ -f "$PROJECT_ROOT/nginx.conf" ]]; then
-    if [[ -d /etc/nginx/sites-available ]]; then
-        # Ubuntu/Debian style
-        cp "$PROJECT_ROOT/nginx.conf" /etc/nginx/sites-available/emergency-response
-        # Update the web root path in the config
-        sed -i "s|/usr/share/nginx/html|$WEB_ROOT|g" /etc/nginx/sites-available/emergency-response
+# Create nginx configuration specifically for system installation
+echo -e "${BLUE}Creating nginx configuration for system installation...${NC}"
+
+# Create nginx config for system installation (different from Docker version)
+cat > /tmp/emergency-response-nginx.conf << 'NGINXCONF'
+server {
+    listen 80;
+    server_name _;
+    
+    # Security headers
+    add_header X-Frame-Options DENY always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    
+    # Main application - serve static files
+    location / {
+        root /var/www/emergency-response;
+        index index.html index.htm;
+        try_files $uri $uri/ /index.html;
         
-        # Enable site
-        ln -sf /etc/nginx/sites-available/emergency-response /etc/nginx/sites-enabled/
-        rm -f /etc/nginx/sites-enabled/default
-    else
-        # RHEL/CentOS style
-        cp "$PROJECT_ROOT/nginx.conf" /etc/nginx/conf.d/emergency-response.conf
-        # Update the web root path in the config
-        sed -i "s|/usr/share/nginx/html|$WEB_ROOT|g" /etc/nginx/conf.d/emergency-response.conf
-    fi
+        # Cache static assets
+        location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+            add_header Vary "Accept-Encoding";
+        }
+    }
+    
+    # API endpoints (System installation - uses localhost)
+    location /api {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        
+        # CORS headers for API
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
+        
+        # Handle OPTIONS requests for CORS
+        if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin * always;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
+            add_header Access-Control-Max-Age 1728000 always;
+            add_header Content-Length 0;
+            add_header Content-Type "text/plain; charset=UTF-8";
+            return 204;
+        }
+    }
+    
+    # WebSocket support for real-time updates
+    location /ws {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # WebSocket timeouts
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+        proxy_connect_timeout 60s;
+    }
+    
+    # Health check endpoint (nginx level)
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+    
+    # Deny access to sensitive files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+    
+    location ~ \.(htaccess|htpasswd|ini|log|sh|sql|conf)$ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+    
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/javascript
+        application/json
+        application/xml+rss
+        application/atom+xml
+        image/svg+xml;
+    
+    # Client settings
+    client_max_body_size 10M;
+    client_body_buffer_size 128k;
+    
+    # Proxy timeouts
+    proxy_connect_timeout 60s;
+    proxy_send_timeout 60s;
+    proxy_read_timeout 60s;
+    proxy_buffering on;
+    proxy_buffer_size 4k;
+    proxy_buffers 8 4k;
+    proxy_busy_buffers_size 8k;
+}
+NGINXCONF
+
+# Configure nginx based on system type
+if [[ -d /etc/nginx/sites-available ]]; then
+    # Ubuntu/Debian style
+    cp /tmp/emergency-response-nginx.conf /etc/nginx/sites-available/emergency-response
+    
+    # Enable site and disable default
+    ln -sf /etc/nginx/sites-available/emergency-response /etc/nginx/sites-enabled/
+    rm -f /etc/nginx/sites-enabled/default
+    
+    echo -e "${GREEN}✅ Configured nginx (Ubuntu/Debian style)${NC}"
 else
-    echo -e "${RED}Error: nginx.conf not found at $PROJECT_ROOT/nginx.conf${NC}"
+    # RHEL/CentOS style
+    cp /tmp/emergency-response-nginx.conf /etc/nginx/conf.d/emergency-response.conf
+    
+    # Disable default server block in main config if it exists
+    if [[ -f /etc/nginx/nginx.conf ]]; then
+        # Comment out any existing server blocks in main config
+        sed -i '/^[[:space:]]*server[[:space:]]*{/,/^[[:space:]]*}/s/^/#/' /etc/nginx/nginx.conf 2>/dev/null || true
+    fi
+    
+    echo -e "${GREEN}✅ Configured nginx (RHEL/CentOS style)${NC}"
+fi
+
+# Clean up temporary file
+rm -f /tmp/emergency-response-nginx.conf
+
+# Test nginx configuration
+echo -e "${BLUE}Testing nginx configuration...${NC}"
+if ! nginx -t; then
+    echo -e "${RED}Nginx configuration test failed${NC}"
+    echo -e "${YELLOW}Checking nginx configuration...${NC}"
+    
+    # Show the configuration we created
+    if [[ -f /etc/nginx/sites-available/emergency-response ]]; then
+        echo -e "${BLUE}Configuration file: /etc/nginx/sites-available/emergency-response${NC}"
+        head -20 /etc/nginx/sites-available/emergency-response
+    elif [[ -f /etc/nginx/conf.d/emergency-response.conf ]]; then
+        echo -e "${BLUE}Configuration file: /etc/nginx/conf.d/emergency-response.conf${NC}"
+        head -20 /etc/nginx/conf.d/emergency-response.conf
+    fi
+    
+    # Show nginx error
+    echo -e "${BLUE}Nginx test output:${NC}"
+    nginx -t 2>&1 || true
+    
     exit 1
 fi
 
-# Test nginx configuration
-if ! nginx -t; then
-    echo -e "${RED}Nginx configuration test failed${NC}"
-    exit 1
-fi
+echo -e "${GREEN}✅ Nginx configuration test passed${NC}"
 
 # Start services
 echo -e "${BLUE}Starting services...${NC}"
@@ -2251,6 +2398,7 @@ echo -e "${BLUE}📋 Verifying project files...${NC}"
 
 CRITICAL_FILES=(
     "README.md"
+    "NGINX-README.md"
     "src/web/index.html"
     "src/web/js/app.js"
     "src/api/package.json"
@@ -2327,7 +2475,8 @@ echo "✅ Added comprehensive error handling in API"
 echo "✅ Improved service startup reliability with mock data fallbacks"
 echo "✅ Enhanced Docker configuration"
 echo "✅ Added proper environment variable handling"
-echo "✅ Fixed nginx configuration"
+echo "✅ Fixed nginx configuration for both Docker and system installations"
 echo "✅ Improved logging and debugging"
+echo "✅ Separated Docker and system nginx configurations"
 echo ""
 echo -e "${BLUE}Generated in: $(pwd)/$PROJECT_NAME${NC}"
