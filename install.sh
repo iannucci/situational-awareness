@@ -109,9 +109,42 @@ if command -v timescaledb-tune &> /dev/null; then
 fi
 
 echo -e "${BLUE}Installing Node.js dependencies...${NC}"
-cd src/api && npm install --production && cd ../..
+# Check if we're in the project directory and navigate properly
+if [[ ! -d "src/api" ]]; then
+    echo -e "${RED}Error: src/api directory not found. Please run this installer from the project root directory.${NC}"
+    echo -e "${YELLOW}Current directory: $(pwd)${NC}"
+    echo -e "${YELLOW}Expected structure: $(pwd)/src/api/package.json${NC}"
+    exit 1
+fi
+
+cd src/api
+if [[ ! -f "package.json" ]]; then
+    echo -e "${RED}Error: package.json not found in src/api directory${NC}"
+    exit 1
+fi
+
+npm install --production
+if [[ $? -ne 0 ]]; then
+    echo -e "${RED}Error: npm install failed${NC}"
+    exit 1
+fi
+cd ../..
 
 echo -e "${BLUE}Creating system service...${NC}"
+# Use absolute paths to avoid working directory issues
+PROJECT_ROOT=$(pwd)
+API_DIR="$PROJECT_ROOT/src/api"
+
+# Verify the API directory exists and has the server file
+if [[ ! -f "$API_DIR/server.js" ]]; then
+    echo -e "${RED}Error: server.js not found at $API_DIR/server.js${NC}"
+    exit 1
+fi
+
+# Create logs directory
+mkdir -p "$PROJECT_ROOT/logs"
+chmod 755 "$PROJECT_ROOT/logs"
+
 cat > /etc/systemd/system/emergency-response.service << SERVICEFILE
 [Unit]
 Description=Palo Alto Emergency Response System
@@ -123,7 +156,7 @@ Wants=$PG_SERVICE.service
 Type=simple
 User=root
 Group=root
-WorkingDirectory=$(pwd)/src/api
+WorkingDirectory=$API_DIR
 ExecStart=/usr/bin/node server.js
 Restart=always
 RestartSec=10
@@ -149,7 +182,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=$(pwd)/logs $(pwd)/uploads
+ReadWritePaths=$PROJECT_ROOT/logs $PROJECT_ROOT/uploads
 
 [Install]
 WantedBy=multi-user.target
@@ -160,6 +193,15 @@ systemctl enable emergency-response
 systemctl start emergency-response
 
 echo -e "${BLUE}Configuring Nginx...${NC}"
+# Verify project structure
+PROJECT_ROOT=$(pwd)
+WEB_DIR="$PROJECT_ROOT/src/web"
+
+if [[ ! -d "$WEB_DIR" ]]; then
+    echo -e "${RED}Error: Web directory not found at $WEB_DIR${NC}"
+    exit 1
+fi
+
 # Ensure nginx.conf exists before copying
 if [[ ! -f "nginx.conf" ]]; then
     echo -e "${YELLOW}nginx.conf not found, creating default configuration...${NC}"
@@ -168,8 +210,13 @@ server {
     listen 80;
     server_name _;
     
+    # Security headers
+    add_header X-Frame-Options DENY;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-XSS-Protection "1; mode=block";
+    
     location / {
-        root /usr/share/nginx/html;
+        root /var/www/emergency-response;
         index index.html;
         try_files $uri $uri/ @api;
     }
@@ -178,12 +225,16 @@ server {
         proxy_pass http://127.0.0.1:3000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
     
     location /api {
         proxy_pass http://127.0.0.1:3000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
     
     location /ws {
@@ -191,24 +242,63 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    
+    # Health check
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
     }
 }
 NGINXEOF
 fi
 
-# Copy nginx configuration
+# Copy web files to standard location for easier nginx configuration
+WEB_ROOT="/var/www/emergency-response"
+echo -e "${BLUE}Setting up web root at $WEB_ROOT...${NC}"
+mkdir -p "$WEB_ROOT"
+cp -r "$WEB_DIR/"* "$WEB_ROOT/"
+chown -R www-data:www-data "$WEB_ROOT" 2>/dev/null || chown -R nginx:nginx "$WEB_ROOT" 2>/dev/null || true
+chmod -R 644 "$WEB_ROOT"
+find "$WEB_ROOT" -type d -exec chmod 755 {} \;
+
+# Copy and configure nginx
 if [[ -d /etc/nginx/sites-available ]]; then
     # Ubuntu/Debian style
     cp nginx.conf /etc/nginx/sites-available/emergency-response
-    sed -i 's|/usr/share/nginx/html|'$(pwd)'/src/web|g' /etc/nginx/sites-available/emergency-response
-    sed -i 's|http://api:3000|http://127.0.0.1:3000|g' /etc/nginx/sites-available/emergency-response
+    # Update the web root path in the config
+    sed -i "s|/var/www/emergency-response|$WEB_ROOT|g" /etc/nginx/sites-available/emergency-response
+    
+    # Enable site
     ln -sf /etc/nginx/sites-available/emergency-response /etc/nginx/sites-enabled/
     rm -f /etc/nginx/sites-enabled/default
+    
+    # Test nginx configuration
+    if ! nginx -t; then
+        echo -e "${RED}Nginx configuration test failed${NC}"
+        cat /etc/nginx/sites-available/emergency-response
+        exit 1
+    fi
 else
     # RHEL/CentOS style
     cp nginx.conf /etc/nginx/conf.d/emergency-response.conf
-    sed -i 's|/usr/share/nginx/html|'$(pwd)'/src/web|g' /etc/nginx/conf.d/emergency-response.conf
-    sed -i 's|http://api:3000|http://127.0.0.1:3000|g' /etc/nginx/conf.d/emergency-response.conf
+    # Update the web root path in the config
+    sed -i "s|/var/www/emergency-response|$WEB_ROOT|g" /etc/nginx/conf.d/emergency-response.conf
+    
+    # Remove default server block if it exists
+    if [[ -f /etc/nginx/nginx.conf ]]; then
+        sed -i '/server {/,/}/d' /etc/nginx/nginx.conf 2>/dev/null || true
+    fi
+    
+    # Test nginx configuration
+    if ! nginx -t; then
+        echo -e "${RED}Nginx configuration test failed${NC}"
+        cat /etc/nginx/conf.d/emergency-response.conf
+        exit 1
+    fi
 fi
 
 # Test and restart nginx
@@ -268,14 +358,16 @@ else
     echo -e "${RED}❌ Emergency Response System failed to start${NC}"
 fi
 
-echo -e "${GREEN}✅ Installation completed successfully!${NC}"
+echo -e "${GREEN}✅ Installation completed!${NC}"
 echo "=============================================="
 echo -e "${BLUE}System Information:${NC}"
 echo "🌐 Web Interface: http://$(hostname -I | awk '{print $1}')"
 echo "📊 API Health Check: http://$(hostname -I | awk '{print $1}'):3000/api/health"
+echo "🔧 Nginx Health Check: http://$(hostname -I | awk '{print $1}')/health"
 echo "🗄️  Database: PostgreSQL $PG_VERSION with PostGIS"
+echo "📁 Project Root: $PROJECT_ROOT"
+echo "📁 Web Root: $WEB_ROOT"
 echo "🔑 Database Password: $DB_PASSWORD"
-echo "📁 Application Directory: $(pwd)"
 echo ""
 echo -e "${BLUE}Service Management:${NC}"
 echo "• Start:   sudo systemctl start emergency-response"
@@ -287,14 +379,43 @@ echo ""
 echo -e "${BLUE}Database Management:${NC}"
 echo "• PostgreSQL Service: sudo systemctl status $PG_SERVICE"
 echo "• Connect to DB: sudo -u postgres psql -d palo_alto_emergency"
+echo "• Test DB: sudo -u emergency_user psql -h localhost -d palo_alto_emergency"
 echo "• Backup Script: /usr/local/bin/emergency-backup.sh"
 echo ""
-echo -e "${YELLOW}Next Steps:${NC}"
-echo "1. Configure your tile server URL in src/web/js/app.js"
-echo "2. Review and customize configuration files"
-echo "3. Set up SSL certificate for production use"
-echo "4. Configure monitoring and alerting"
-echo "5. Train emergency response personnel"
+echo -e "${BLUE}Web Server Management:${NC}"
+echo "• Nginx Status: sudo systemctl status nginx"
+echo "• Test Config: sudo nginx -t"
+echo "• Nginx Logs: sudo tail -f /var/log/nginx/error.log"
+echo "• Web Files: ls -la $WEB_ROOT"
 echo ""
-echo -e "${GREEN}🚨 Emergency Response System Ready! 🚨${NC}"
+echo -e "${BLUE}Troubleshooting:${NC}"
+echo "• API not responding:"
+echo "  - Check: sudo journalctl -u emergency-response -n 50"
+echo "  - Verify: curl http://localhost:3000/api/health"
+echo "  - Test DB: sudo -u postgres psql -d palo_alto_emergency -c 'SELECT 1;'"
+echo ""
+echo "• 502 Bad Gateway:"
+echo "  - Check API service: sudo systemctl status emergency-response"
+echo "  - Check nginx config: sudo nginx -t"
+echo "  - Verify proxy: curl http://localhost:3000/api/health"
+echo ""
+echo "• Database connection issues:"
+echo "  - Check PostgreSQL: sudo systemctl status $PG_SERVICE"
+echo "  - Check credentials in: /etc/emergency-response.conf"
+echo "  - Test connection: sudo -u postgres psql -l"
+echo ""
+echo -e "${YELLOW}Next Steps:${NC}"
+echo "1. Test web interface: curl http://$(hostname -I | awk '{print $1}')/health"
+echo "2. Test API: curl http://$(hostname -I | awk '{print $1}'):3000/api/health"
+echo "3. Configure your tile server URL in $WEB_ROOT/js/app.js"
+echo "4. Review and customize configuration files"
+echo "5. Set up SSL certificate for production use"
+echo "6. Configure monitoring and alerting"
+echo ""
+if systemctl is-active --quiet emergency-response && systemctl is-active --quiet nginx && systemctl is-active --quiet $PG_SERVICE; then
+    echo -e "${GREEN}🚨 All services running - Emergency Response System Ready! 🚨${NC}"
+else
+    echo -e "${YELLOW}⚠️  Some services may need attention. Check the status above.${NC}"
+    echo -e "${YELLOW}Run: sudo journalctl -u emergency-response -f${NC}"
+fi
 echo "=============================================="
