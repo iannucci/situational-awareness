@@ -18,6 +18,8 @@ fi
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 echo -e "${BLUE}Project root: $PROJECT_ROOT${NC}"
 
+chmod a+rw "$PROJECT_ROOT/database/schema.sql"
+
 # FIXED: Verify we're in the correct directory and all files exist
 if [[ ! -f "$PROJECT_ROOT/database/schema.sql" ]]; then
     echo -e "${RED}Error: database/schema.sql not found at $PROJECT_ROOT/database/schema.sql${NC}"
@@ -399,6 +401,7 @@ fi
 
 # Create database and user
 echo -e "${BLUE}Creating database and user...${NC}"
+sudo -u postgres psql -c "DROP database IF EXISTS palo_alto_situational_awareness;" || true
 sudo -u postgres createdb palo_alto_situational_awareness || echo -e "${YELLOW}Database may already exist${NC}"
 sudo -u postgres psql -c "DROP USER IF EXISTS situational_awareness_user;" || true
 sudo -u postgres psql -c "CREATE USER situational_awareness_user WITH PASSWORD '$DB_PASSWORD';" || true
