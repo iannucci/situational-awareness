@@ -6,6 +6,7 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
+SCHEMA='/tmp/schema.sql'
 
 echo -e "${BLUE}🚨 Palo Alto Situational Awareness System Installer 🚨${NC}"
 
@@ -17,8 +18,6 @@ fi
 # FIXED: Get the absolute path of the project directory
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 echo -e "${BLUE}Project root: $PROJECT_ROOT${NC}"
-
-chmod a+rw "$PROJECT_ROOT/database/schema.sql"
 
 # FIXED: Verify we're in the correct directory and all files exist
 if [[ ! -f "$PROJECT_ROOT/database/schema.sql" ]]; then
@@ -327,6 +326,9 @@ SCHEMA_EOF
     fi
 fi
 
+rm "/tmp/schema.sql"
+cp "$PROJECT_ROOT/database/schema.sql" "$SCHEMA"
+
 if [[ ! -f "$PROJECT_ROOT/src/api/package.json" ]]; then
     echo -e "${RED}Error: API package.json not found at $PROJECT_ROOT/src/api/package.json${NC}"
     exit 1
@@ -417,11 +419,19 @@ sudo -u postgres psql -d palo_alto_situational_awareness -c "ALTER DEFAULT PRIVI
 sudo -u postgres psql -d palo_alto_situational_awareness -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO situational_awareness_user;" || true
 
 # FIXED: Load database schema with absolute path
-echo -e "${BLUE}Loading database schema from $PROJECT_ROOT/database/schema.sql...${NC}"
-if [[ -f "$PROJECT_ROOT/database/schema.sql" ]]; then
-    sudo -u postgres psql -d palo_alto_situational_awareness -f "$PROJECT_ROOT/database/schema.sql" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
+# echo -e "${BLUE}Loading database schema from $PROJECT_ROOT/database/schema.sql...${NC}"
+# if [[ -f "$PROJECT_ROOT/database/schema.sql" ]]; then
+#     sudo -u postgres psql -d palo_alto_situational_awareness -f "$PROJECT_ROOT/database/schema.sql" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
+# else
+#     echo -e "${RED}Error: Schema file not found at $PROJECT_ROOT/database/schema.sql${NC}"
+#     exit 1
+# fi
+
+echo -e "${BLUE}Loading database schema from $SCHEMA...${NC}"
+if [[ -f "$SCHEMA" ]]; then
+    sudo -u postgres psql -d palo_alto_situational_awareness -f "$SCHEMA" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
 else
-    echo -e "${RED}Error: Schema file not found at $PROJECT_ROOT/database/schema.sql${NC}"
+    echo -e "${RED}Error: Schema file not found at $SCHEMA${NC}"
     exit 1
 fi
 
