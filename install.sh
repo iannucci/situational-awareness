@@ -7,7 +7,7 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-echo -e "${BLUE}🚨 Palo Alto Emergency Response System Installer 🚨${NC}"
+echo -e "${BLUE}🚨 Palo Alto Situational Awareness System Installer 🚨${NC}"
 
 if [[ $EUID -ne 0 ]]; then
     echo -e "${RED}This script must be run as root (use sudo)${NC}"
@@ -51,7 +51,7 @@ if [[ ! -f "$PROJECT_ROOT/database/schema.sql" ]]; then
         mkdir -p "$PROJECT_ROOT/database"
         
         cat > "$PROJECT_ROOT/database/schema.sql" << 'SCHEMA_EOF'
--- Emergency Response Database Schema for Palo Alto
+-- Situational Awareness Database Schema for Palo Alto
 -- PostgreSQL 16 with PostGIS and TimescaleDB extensions
 
 -- Enable required extensions
@@ -303,9 +303,9 @@ ON CONFLICT (unit_id, timestamp) DO NOTHING;
 DO $
 BEGIN
     RAISE NOTICE '=======================================================';
-    RAISE NOTICE 'Emergency Response Database Schema Setup Complete!';
-    RAISE NOTICE 'Database: Palo Alto Emergency Response System';
-    RAISE NOTICE 'Ready for emergency response operations!';
+    RAISE NOTICE 'Situational Awareness Database Schema Setup Complete!';
+    RAISE NOTICE 'Database: Palo Alto Situational Awareness System';
+    RAISE NOTICE 'Ready for Situational Awareness operations!';
     RAISE NOTICE '=======================================================';
 END $;
 SCHEMA_EOF
@@ -399,24 +399,24 @@ fi
 
 # Create database and user
 echo -e "${BLUE}Creating database and user...${NC}"
-sudo -u postgres createdb palo_alto_emergency || echo -e "${YELLOW}Database may already exist${NC}"
-sudo -u postgres psql -c "DROP USER IF EXISTS emergency_user;" || true
-sudo -u postgres psql -c "CREATE USER emergency_user WITH PASSWORD '$DB_PASSWORD';" || true
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE palo_alto_emergency TO emergency_user;" || true
-sudo -u postgres psql -c "ALTER USER emergency_user CREATEDB;" || true
+sudo -u postgres createdb palo_alto_situational_awareness || echo -e "${YELLOW}Database may already exist${NC}"
+sudo -u postgres psql -c "DROP USER IF EXISTS situational_awareness_user;" || true
+sudo -u postgres psql -c "CREATE USER situational_awareness_user WITH PASSWORD '$DB_PASSWORD';" || true
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE palo_alto_situational_awareness TO situational_awareness_user;" || true
+sudo -u postgres psql -c "ALTER USER situational_awareness_user CREATEDB;" || true
 
 # Grant schema permissions
 echo -e "${BLUE}Setting up database permissions...${NC}"
-sudo -u postgres psql -d palo_alto_emergency -c "GRANT ALL ON SCHEMA public TO emergency_user;" || true
-sudo -u postgres psql -d palo_alto_emergency -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO emergency_user;" || true
-sudo -u postgres psql -d palo_alto_emergency -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO emergency_user;" || true
-sudo -u postgres psql -d palo_alto_emergency -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO emergency_user;" || true
-sudo -u postgres psql -d palo_alto_emergency -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO emergency_user;" || true
+sudo -u postgres psql -d palo_alto_situational_awareness -c "GRANT ALL ON SCHEMA public TO situational_awareness_user;" || true
+sudo -u postgres psql -d palo_alto_situational_awareness -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO situational_awareness_user;" || true
+sudo -u postgres psql -d palo_alto_situational_awareness -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO situational_awareness_user;" || true
+sudo -u postgres psql -d palo_alto_situational_awareness -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO situational_awareness_user;" || true
+sudo -u postgres psql -d palo_alto_situational_awareness -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO situational_awareness_user;" || true
 
 # FIXED: Load database schema with absolute path
 echo -e "${BLUE}Loading database schema from $PROJECT_ROOT/database/schema.sql...${NC}"
 if [[ -f "$PROJECT_ROOT/database/schema.sql" ]]; then
-    sudo -u postgres psql -d palo_alto_emergency -f "$PROJECT_ROOT/database/schema.sql" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
+    sudo -u postgres psql -d palo_alto_situational_awareness -f "$PROJECT_ROOT/database/schema.sql" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
 else
     echo -e "${RED}Error: Schema file not found at $PROJECT_ROOT/database/schema.sql${NC}"
     exit 1
@@ -465,8 +465,8 @@ NODE_ENV=production
 PORT=3000
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=palo_alto_emergency
-DB_USER=emergency_user
+DB_NAME=palo_alto_situational_awareness
+DB_USER=situational_awareness_user
 DB_PASSWORD=$DB_PASSWORD
 DB_SSL=false
 DB_CONNECTION_TIMEOUT=30000
@@ -475,10 +475,10 @@ ENVFILE
 chmod 600 "$PROJECT_ROOT/.env"
 
 # Create systemd service file with proper environment handling
-cat > /etc/systemd/system/emergency-response.service << SERVICEFILE
+cat > /etc/systemd/system/situational-awareness.service << SERVICEFILE
 [Unit]
-Description=Palo Alto Emergency Response System
-Documentation=https://github.com/yourusername/palo-alto-emergency-response
+Description=Palo Alto Situational Awareness System
+Documentation=https://github.com/iannucci/situational-awareness
 After=network.target $PG_SERVICE.service
 Wants=$PG_SERVICE.service
 
@@ -492,7 +492,7 @@ Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=emergency-response
+SyslogIdentifier=situational-awareness
 
 # FIXED: Environment file
 EnvironmentFile=$PROJECT_ROOT/.env
@@ -509,7 +509,7 @@ WantedBy=multi-user.target
 SERVICEFILE
 
 systemctl daemon-reload
-systemctl enable emergency-response
+systemctl enable situational-awareness
 
 echo -e "${BLUE}Configuring Nginx...${NC}"
 WEB_DIR="$PROJECT_ROOT/src/web"
@@ -520,7 +520,7 @@ if [[ ! -d "$WEB_DIR" ]]; then
 fi
 
 # Copy web files to standard location
-WEB_ROOT="/var/www/emergency-response"
+WEB_ROOT="/var/www/situational-awareness"
 echo -e "${BLUE}Setting up web root at $WEB_ROOT...${NC}"
 mkdir -p "$WEB_ROOT"
 cp -r "$WEB_DIR/"* "$WEB_ROOT/"
@@ -532,7 +532,7 @@ find "$WEB_ROOT" -type d -exec chmod 755 {} \;
 echo -e "${BLUE}Creating nginx configuration for system installation...${NC}"
 
 # Create nginx config for system installation (different from Docker version)
-cat > /tmp/emergency-response-nginx.conf << 'NGINXCONF'
+cat > /tmp/situational-awareness-nginx.conf << 'NGINXCONF'
 server {
     listen 80;
     server_name _;
@@ -545,7 +545,7 @@ server {
     
     # Main application - serve static files
     location / {
-        root /var/www/emergency-response;
+        root /var/www/situational-awareness;
         index index.html index.htm;
         try_files $uri $uri/ /index.html;
         
@@ -656,16 +656,16 @@ NGINXCONF
 # Configure nginx based on system type
 if [[ -d /etc/nginx/sites-available ]]; then
     # Ubuntu/Debian style
-    cp /tmp/emergency-response-nginx.conf /etc/nginx/sites-available/emergency-response
+    cp /tmp/situational-awareness-nginx.conf /etc/nginx/sites-available/situational-awareness
     
     # Enable site and disable default
-    ln -sf /etc/nginx/sites-available/emergency-response /etc/nginx/sites-enabled/
+    ln -sf /etc/nginx/sites-available/situational-awareness /etc/nginx/sites-enabled/
     rm -f /etc/nginx/sites-enabled/default
     
     echo -e "${GREEN}✅ Configured nginx (Ubuntu/Debian style)${NC}"
 else
     # RHEL/CentOS style
-    cp /tmp/emergency-response-nginx.conf /etc/nginx/conf.d/emergency-response.conf
+    cp /tmp/situational-awareness-nginx.conf /etc/nginx/conf.d/situational-awareness.conf
     
     # Disable default server block in main config if it exists
     if [[ -f /etc/nginx/nginx.conf ]]; then
@@ -677,7 +677,7 @@ else
 fi
 
 # Clean up temporary file
-rm -f /tmp/emergency-response-nginx.conf
+rm -f /tmp/situational-awareness-nginx.conf
 
 # Test nginx configuration
 echo -e "${BLUE}Testing nginx configuration...${NC}"
@@ -686,12 +686,12 @@ if ! nginx -t; then
     echo -e "${YELLOW}Checking nginx configuration...${NC}"
     
     # Show the configuration we created
-    if [[ -f /etc/nginx/sites-available/emergency-response ]]; then
-        echo -e "${BLUE}Configuration file: /etc/nginx/sites-available/emergency-response${NC}"
-        head -20 /etc/nginx/sites-available/emergency-response
-    elif [[ -f /etc/nginx/conf.d/emergency-response.conf ]]; then
-        echo -e "${BLUE}Configuration file: /etc/nginx/conf.d/emergency-response.conf${NC}"
-        head -20 /etc/nginx/conf.d/emergency-response.conf
+    if [[ -f /etc/nginx/sites-available/situational-awareness ]]; then
+        echo -e "${BLUE}Configuration file: /etc/nginx/sites-available/situational-awareness${NC}"
+        head -20 /etc/nginx/sites-available/situational-awareness
+    elif [[ -f /etc/nginx/conf.d/situational-awareness.conf ]]; then
+        echo -e "${BLUE}Configuration file: /etc/nginx/conf.d/situational-awareness.conf${NC}"
+        head -20 /etc/nginx/conf.d/situational-awareness.conf
     fi
     
     # Show nginx error
@@ -705,26 +705,26 @@ echo -e "${GREEN}✅ Nginx configuration test passed${NC}"
 
 # Start services
 echo -e "${BLUE}Starting services...${NC}"
-systemctl start emergency-response
+systemctl start situational-awareness
 nginx -t && systemctl restart nginx && systemctl enable nginx
 
 # Save configuration
-echo "DB_PASSWORD=$DB_PASSWORD" > /etc/emergency-response.conf
-echo "PROJECT_ROOT=$PROJECT_ROOT" >> /etc/emergency-response.conf
-echo "POSTGRES_VERSION=$PG_VERSION" >> /etc/emergency-response.conf
-chmod 600 /etc/emergency-response.conf
+echo "DB_PASSWORD=$DB_PASSWORD" > /etc/situational-awareness.conf
+echo "PROJECT_ROOT=$PROJECT_ROOT" >> /etc/situational-awareness.conf
+echo "POSTGRES_VERSION=$PG_VERSION" >> /etc/situational-awareness.conf
+chmod 600 /etc/situational-awareness.conf
 
 # Create backup script
 cat > /usr/local/bin/emergency-backup.sh << 'BACKUPEOF'
 #!/bin/bash
-BACKUP_DIR="/var/backups/emergency-response"
+BACKUP_DIR="/var/backups/situational-awareness"
 DATE=$(date +%Y%m%d_%H%M%S)
-DB_NAME="palo_alto_emergency"
-DB_USER="emergency_user"
+DB_NAME="palo_alto_situational_awareness"
+DB_USER="situational_awareness_user"
 
 # Load configuration
-if [[ -f /etc/emergency-response.conf ]]; then
-    source /etc/emergency-response.conf
+if [[ -f /etc/situational-awareness.conf ]]; then
+    source /etc/situational-awareness.conf
 fi
 
 mkdir -p "$BACKUP_DIR"
@@ -775,14 +775,14 @@ else
     tail -n 10 /var/log/nginx/error.log || true
 fi
 
-if systemctl is-active --quiet emergency-response; then
-    echo -e "${GREEN}✅ Emergency Response System is running${NC}"
+if systemctl is-active --quiet situational-awareness; then
+    echo -e "${GREEN}✅ Situational Awareness System is running${NC}"
 else
-    echo -e "${RED}❌ Emergency Response System failed to start${NC}"
+    echo -e "${RED}❌ Situational Awareness System failed to start${NC}"
     echo "Checking service status:"
-    systemctl status emergency-response --no-pager || true
+    systemctl status situational-awareness --no-pager || true
     echo "Checking logs:"
-    journalctl -u emergency-response -n 20 --no-pager || true
+    journalctl -u situational-awareness -n 20 --no-pager || true
 fi
 
 # Test API health
@@ -806,23 +806,23 @@ echo "📁 Web Root: $WEB_ROOT"
 echo "🔑 Database Password: $DB_PASSWORD"
 echo ""
 echo -e "${BLUE}Service Management:${NC}"
-echo "• Start:   sudo systemctl start emergency-response"
-echo "• Stop:    sudo systemctl stop emergency-response"
-echo "• Restart: sudo systemctl restart emergency-response"
-echo "• Status:  sudo systemctl status emergency-response"
-echo "• Logs:    sudo journalctl -u emergency-response -f"
+echo "• Start:   sudo systemctl start situational-awareness"
+echo "• Stop:    sudo systemctl stop situational-awareness"
+echo "• Restart: sudo systemctl restart situational-awareness"
+echo "• Status:  sudo systemctl status situational-awareness"
+echo "• Logs:    sudo journalctl -u situational-awareness -f"
 echo ""
 echo -e "${BLUE}Troubleshooting:${NC}"
-echo "• Service logs: sudo journalctl -u emergency-response -f"
+echo "• Service logs: sudo journalctl -u situational-awareness -f"
 echo "• Nginx logs: sudo tail -f /var/log/nginx/error.log"
 echo "• Test API: curl http://localhost:3000/api/health"
-echo "• Test Database: psql -h localhost -d palo_alto_emergency -U emergency_user -c 'SELECT 1;'"
+echo "• Test Database: psql -h localhost -d palo_alto_situational_awareness -U situational_awareness_user -c 'SELECT 1;'"
 echo ""
 
-if systemctl is-active --quiet emergency-response && systemctl is-active --quiet nginx && systemctl is-active --quiet $PG_SERVICE; then
-    echo -e "${GREEN}🚨 All services running - Emergency Response System Ready! 🚨${NC}"
+if systemctl is-active --quiet situational-awareness && systemctl is-active --quiet nginx && systemctl is-active --quiet $PG_SERVICE; then
+    echo -e "${GREEN}🚨 All services running - Situational Awareness System Ready! 🚨${NC}"
 else
     echo -e "${YELLOW}⚠️ Some services may need attention. Check the status above.${NC}"
-    echo -e "${YELLOW}Run: sudo journalctl -u emergency-response -f${NC}"
+    echo -e "${YELLOW}Run: sudo journalctl -u situational-awareness -f${NC}"
 fi
 echo "=============================================="
