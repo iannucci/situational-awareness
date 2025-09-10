@@ -49,9 +49,9 @@ const config = {
     database: {
         host: process.env.DB_HOST || "localhost",
         port: parseInt(process.env.DB_PORT) || 5432,
-        database: process.env.DB_NAME || "palo_alto_emergency",
-        user: process.env.DB_USER || "emergency_user",
-        password: process.env.DB_PASSWORD || "emergency_pass",
+        database: process.env.DB_NAME || "palo_alto_situational_awareness",
+        user: process.env.DB_USER || "situational_awareness_user",
+        password: process.env.DB_PASSWORD || "situational_awareness_pass",
         ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
         connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 30000,
         max: 20,
