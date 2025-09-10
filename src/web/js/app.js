@@ -1,4 +1,4 @@
-// Emergency Response Mapping Application
+// Situational Awareness Mapping Application
 let map;
 let incidentLayer, personnelLayer, shelterLayer;
 
@@ -7,7 +7,7 @@ const TILE_SERVER_URL = "http://pa-map-tiles.local.mesh/hot/{z}/{x}/{y}.png";
 const PALO_ALTO_BOUNDS = {
     center: [37.4419, -122.1430],
     bounds: [[37.3894, -122.1965], [37.4944, -122.0895]],
-    zoom: 11
+    zoom: 13
 };
 const API_BASE = "/api/v1";
 
@@ -23,7 +23,7 @@ function initMap() {
     
     const tileLayer = L.tileLayer(TILE_SERVER_URL, {
         maxZoom: 18,
-        attribution: "© OpenStreetMap contributors | Emergency Response System"
+        attribution: "© OpenStreetMap contributors | Situational Awareness System"
     });
     tileLayer.addTo(map);
     
@@ -33,7 +33,7 @@ function initMap() {
         fillOpacity: 0.1,
         dashArray: "10, 10"
     }).addTo(map);
-    boundaryRectangle.bindPopup("<b>Palo Alto Service Area</b><br/>Emergency Response Coverage Zone");
+    boundaryRectangle.bindPopup("<b>Palo Alto Service Area</b><br/>Situational Awareness Coverage Zone");
     
     incidentLayer = L.layerGroup().addTo(map);
     personnelLayer = L.layerGroup().addTo(map);
@@ -152,7 +152,7 @@ function loadResources() { alert("Loading resource centers..."); }
 
 document.addEventListener("DOMContentLoaded", function() {
     initMap();
-    console.log("Emergency Response System initialized for Palo Alto, CA");
+    console.log("Situational Awareness System initialized for Palo Alto, CA");
 });
 
 setInterval(() => {
