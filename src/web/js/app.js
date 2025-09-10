@@ -2,11 +2,12 @@
 let map;
 let incidentLayer, personnelLayer, shelterLayer;
 
-const TILE_SERVER_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+// const TILE_SERVER_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const TILE_SERVER_URL = "http://pa-map-tiles.local.mesh/hot/{z}/{x}/{y}.png";
 const PALO_ALTO_BOUNDS = {
     center: [37.4419, -122.1430],
     bounds: [[37.3894, -122.1965], [37.4944, -122.0895]],
-    zoom: 12
+    zoom: 11
 };
 const API_BASE = "/api/v1";
 
