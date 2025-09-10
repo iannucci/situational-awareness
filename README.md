@@ -15,13 +15,6 @@ A comprehensive web-based mapping application designed specifically for emergenc
 
 ## 🚀 Quick Start
 
-### Docker (Recommended)
-```bash
-git clone https://github.com/yourusername/palo-alto-emergency-response.git
-cd palo-alto-emergency-response
-docker-compose up -d
-```
-
 ### System Installation  
 ```bash
 chmod +x install.sh
