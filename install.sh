@@ -26,13 +26,51 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-echo "Reading config.sh"
-if [[ ! -f "./config.sh" ]]; then
-    echo -e "${RED}Error: config.sh is missing"
-    exit 1
-fi
+usage() {
+  echo "Usage: $0 [OPTIONS]"
+  echo "Install Situational Awareness system."
+  echo ""
+  echo "Options:"
+  echo "  --user NAME         Specify the database username (default $DB_USER)"
+  echo "  --password PW       Specify the password for the database user (default $DB_PASSWORD)"
+  echo "  --host HOST         Specify the database host (default $DB_HOST)"
+  echo "  --port PORT         Specify the port (default $DB_PORT)"
+  echo "  --database DBNAME   Specify the name of the database (default $DB_NAME)"
+  echo ""
+  echo "Example:"
+  echo "  $0 --user sauser --password foobar"
+  exit 1
+}
 
-source config.sh
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        --user)
+            DB_USER="$2"
+            shift
+            ;;
+        --password)
+            DB_PASSWORD="$2"
+            shift
+            ;;
+        --host)
+            DB_HOST="$2"
+            shift
+            ;;
+        --port)
+            DB_PORT="$2"
+            shift
+            ;;
+        --database)
+            DB_NAME="$2"
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            ;;
+    esac
+    shift # Shift past the current argument (option or flag)
+done
 
 echo "Creating app dir at $APP_DIR"
 sudo mkdir -p "$APP_DIR"
