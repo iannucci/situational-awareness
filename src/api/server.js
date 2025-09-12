@@ -11,7 +11,7 @@ const path = require("path");
 // Load environment variables
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
-console.log("🚨 Emergency Response System API Starting...");
+console.log("🚨 Situational Awareness API Starting...");
 
 // Route imports with error handling
 let incidentsRouter, personnelRouter, sheltersRouter;
@@ -193,7 +193,7 @@ app.get("/api/health", async (req, res) => {
 app.get("/api/v1", (req, res) => {
     res.json({
         success: true,
-        message: "Palo Alto Emergency Response System API",
+        message: "Palo Alto Situational Awareness API",
         version: "1.0.0",
         endpoints: {
             health: "/api/health",
@@ -201,7 +201,7 @@ app.get("/api/v1", (req, res) => {
             personnel: "/api/v1/personnel/status",
             shelters: "/api/v1/shelters/available"
         },
-        documentation: "https://github.com/yourusername/palo-alto-emergency-response",
+        documentation: "https://github.com/iannucci/situational-awareness",
         timestamp: new Date().toISOString()
     });
 });
@@ -216,7 +216,7 @@ wss.on("connection", (ws, req) => {
     
     ws.send(JSON.stringify({
         type: "connection",
-        message: "Connected to Emergency Response System",
+        message: "Connected to Situational Awareness system",
         timestamp: new Date().toISOString()
     }));
     
@@ -286,7 +286,7 @@ process.on('SIGINT', async () => {
 // Start server
 server.listen(config.port, () => {
     console.log(`
-🚨 Emergency Response System API Server
+🚨 Situational Awareness API Server
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   🌐 Server: http://localhost:${config.port}
   📊 Health: http://localhost:${config.port}/api/health
@@ -294,7 +294,7 @@ server.listen(config.port, () => {
   🔗 WebSocket: ws://localhost:${config.port}/ws
   📍 Service Area: Palo Alto, California
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚒 Ready for emergency response operations
+🚒 Ready for situational awareness operations
     `);
 });
 

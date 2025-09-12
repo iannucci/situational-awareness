@@ -283,7 +283,7 @@ echo -e "${BLUE}Creating nginx configuration for system installation...${NC}"
 cat > /tmp/situational-awareness-nginx.conf << 'NGINXCONF'
 server {
     listen 80;
-    server_name _;
+    server_name pa-sitrep.local.mesh;
     
     # Security headers
     add_header X-Frame-Options DENY always;

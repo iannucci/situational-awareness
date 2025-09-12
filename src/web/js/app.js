@@ -3,7 +3,7 @@
 // Copyright © 2025 by Bob Iannucci.  All rights reserved worldwide.
 //
 
-import { paloAltoBoundary } from './paloAltoBoundary.js';
+// import { paloAltoBoundary } from './paloAltoBoundary.js';
 
 let map;
 let incidentLayer, personnelLayer, shelterLayer;
@@ -32,15 +32,15 @@ function initMap() {
     });
     tileLayer.addTo(map);
     
-    // const boundaryRectangle = L.rectangle(PALO_ALTO_BOUNDS.bounds, {
-    //     color: "#3498db",
-    //     weight: 2,
-    //     fillOpacity: 0.1,
-    //     dashArray: "10, 10"
-    // }).addTo(map);
-    // boundaryRectangle.bindPopup("<b>Palo Alto Service Area</b><br/>Situational Awareness Coverage Zone");
+    const boundaryRectangle = L.rectangle(PALO_ALTO_BOUNDS.bounds, {
+        color: "#3498db",
+        weight: 2,
+        fillOpacity: 0.1,
+        dashArray: "10, 10"
+    }).addTo(map);
+    boundaryRectangle.bindPopup("<b>Palo Alto Service Area</b><br/>Situational Awareness Coverage Zone");
 
-    L.geoJSON(paloAltoBoundary).addTo(map);
+    // L.geoJSON(paloAltoBoundary).addTo(map);
     
     incidentLayer = L.layerGroup().addTo(map);
     personnelLayer = L.layerGroup().addTo(map);
