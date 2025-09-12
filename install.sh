@@ -73,6 +73,7 @@ echo -e "${BLUE}Installing system packages...${NC}"
 if [[ -f /etc/debian_version ]]; then
     # Ubuntu/Debian - Install PostgreSQL 16 (more stable than 17)
     apt update
+    rm -f /usr/share/keyrings/postgresql-archive-keyring.gpg
     apt install -y wget ca-certificates
     
     # Add PostgreSQL official APT repository
