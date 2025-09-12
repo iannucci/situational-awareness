@@ -1,7 +1,7 @@
 {
   "name": "palo-alto-emergency-response-api",
   "version": "1.0.0",
-  "description": "Emergency Response System API Server",
+  "description": "Situational Awareness API Server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -24,7 +24,7 @@
     "nodemon": "^3.0.1",
     "jest": "^29.7.0"
   },
-  "keywords": ["emergency", "response", "gis", "palo-alto"],
+  "keywords": ["situational", "awareness", "gis", "palo-alto"],
   "author": "Bob Iannucci",
   "license": "All rights reserved worldwide",
   "engines": {

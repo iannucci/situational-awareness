@@ -1,4 +1,4 @@
--- Emergency Response Database Schema for Palo Alto
+-- Situational Awareness Database Schema for Palo Alto
 -- PostgreSQL 16 with PostGIS and TimescaleDB extensions
 
 -- Enable required extensions
@@ -250,8 +250,7 @@ ON CONFLICT (unit_id, timestamp) DO NOTHING;
 DO $$
 BEGIN
     RAISE NOTICE '=======================================================';
-    RAISE NOTICE 'Emergency Response Database Schema Setup Complete!';
-    RAISE NOTICE 'Database: Palo Alto Emergency Response System';
+    RAISE NOTICE 'Situational Awareness Database Schema Setup Complete!';
     RAISE NOTICE 'Ready for emergency response operations!';
     RAISE NOTICE '=======================================================';
 END $$;
