@@ -2,10 +2,11 @@
 //
 // Copyright © 2025 by Bob Iannucci.  All rights reserved worldwide.
 //
+
+import { paloAltoBoundary } from './paloAltoBoundary.js';
+
 let map;
 let incidentLayer, personnelLayer, shelterLayer;
-
-import { paloAltoBoundary } from '/paloalto.js';
 
 const TILE_SERVER_URL = "http://pa-map-tiles.local.mesh/hot/{z}/{x}/{y}.png";
 const PALO_ALTO_BOUNDS = {
