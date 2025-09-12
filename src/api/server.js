@@ -45,22 +45,6 @@ try {
     sheltersRouter.get("/available", (req, res) => res.json({ success: true, data: [], note: "Route not implemented" }));
 }
 
-// Configuration
-// const config = {
-//     port: process.env.PORT || 3000,
-//     database: {
-//         host: process.env.DB_HOST || "localhost",
-//         port: parseInt(process.env.DB_PORT) || 5432,
-//         database: process.env.DB_NAME || "palo_alto_situational_awareness",
-//         user: process.env.DB_USER || "situational_awareness_user",
-//         password: process.env.DB_PASSWORD || "situational_awareness_pass",
-//         ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-//         connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 30000,
-//         max: 20,
-//         idleTimeoutMillis: 30000,
-//     }
-// };
-
 console.log("📝 Configuration loaded:", {
     port: config.port,
     database: {
