@@ -20,6 +20,20 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+DB_USER = 'situational_awareness_user'
+DB_PASSWORD = 'none'
+DB_HOST = 'localhost'
+DB_PORT = 5432
+DB_NAME = 'situational_awareness'
+
+echo "Reading config.sh"
+if [[ ! -f "./config.sh" ]]; then
+    echo -e "${RED}Error: config.sh is missing"
+    exit 1
+fi
+
+source config.sh
+
 echo "Creating app dir at $APP_DIR"
 sudo mkdir -p "$APP_DIR"
 sudo mkdir -p "$ETC_DIR"
@@ -120,7 +134,7 @@ fi
 sleep 5
 
 # Generate secure password
-DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
+# DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
 
 # Configure PostgreSQL authentication
 echo -e "${BLUE}Configuring PostgreSQL authentication...${NC}"
@@ -212,10 +226,10 @@ chmod 755 "$APP_DIR/logs"
 cat > "$APP_DIR/.env" << ENVFILE
 NODE_ENV=production
 PORT=3000
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=palo_alto_situational_awareness
-DB_USER=situational_awareness_user
+DB_HOST=$DB_HOST
+DB_PORT=$DB_PORT
+DB_NAME=$DB_NAME
+DB_USER=$DB_USER
 DB_PASSWORD=$DB_PASSWORD
 DB_SSL=false
 DB_CONNECTION_TIMEOUT=30000
