@@ -40,7 +40,7 @@ function initMap() {
     // }).addTo(map);
     // boundaryRectangle.bindPopup("<b>Palo Alto Service Area</b><br/>Situational Awareness Coverage Zone");
 
-    l.geoJSON(paloAltoBoundary).addTo(map);
+    L.geoJSON(paloAltoBoundary).addTo(map);
     
     incidentLayer = L.layerGroup().addTo(map);
     personnelLayer = L.layerGroup().addTo(map);
