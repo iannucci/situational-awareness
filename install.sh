@@ -13,18 +13,18 @@ UNIT_FILE="/etc/systemd/system/$NAME.service"
 ETC_DIR="/etc/$NAME"
 SCHEMA_TMP="/tmp/$NAME_schema.sql"
 
+DB_USER='situational_awareness_user'
+DB_PASSWORD='none'
+DB_HOST='localhost'
+DB_PORT=5432
+DB_NAME='situational_awareness'
+
 echo -e "${BLUE}🚨 Palo Alto Situational Awareness System Installer 🚨${NC}"
 
 if [[ $EUID -ne 0 ]]; then
     echo -e "${RED}This script must be run as root (use sudo)${NC}"
     exit 1
 fi
-
-DB_USER = 'situational_awareness_user'
-DB_PASSWORD = 'none'
-DB_HOST = 'localhost'
-DB_PORT = 5432
-DB_NAME = 'situational_awareness'
 
 echo "Reading config.sh"
 if [[ ! -f "./config.sh" ]]; then
