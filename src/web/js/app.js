@@ -1,8 +1,12 @@
-// Situational Awareness Mapping Application
+// Situational Awareness Application
+//
+// Copyright © 2025 by Bob Iannucci.  All rights reserved worldwide.
+//
 let map;
 let incidentLayer, personnelLayer, shelterLayer;
 
-// const TILE_SERVER_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+import { paloAltoBoundary } from '/paloalto.js';
+
 const TILE_SERVER_URL = "http://pa-map-tiles.local.mesh/hot/{z}/{x}/{y}.png";
 const PALO_ALTO_BOUNDS = {
     center: [37.4419, -122.1430],
@@ -23,17 +27,19 @@ function initMap() {
     
     const tileLayer = L.tileLayer(TILE_SERVER_URL, {
         maxZoom: 18,
-        attribution: "© OpenStreetMap contributors | Situational Awareness System"
+        attribution: "© OpenStreetMap contributors | © Bob Iannucci"
     });
     tileLayer.addTo(map);
     
-    const boundaryRectangle = L.rectangle(PALO_ALTO_BOUNDS.bounds, {
-        color: "#3498db",
-        weight: 2,
-        fillOpacity: 0.1,
-        dashArray: "10, 10"
-    }).addTo(map);
-    boundaryRectangle.bindPopup("<b>Palo Alto Service Area</b><br/>Situational Awareness Coverage Zone");
+    // const boundaryRectangle = L.rectangle(PALO_ALTO_BOUNDS.bounds, {
+    //     color: "#3498db",
+    //     weight: 2,
+    //     fillOpacity: 0.1,
+    //     dashArray: "10, 10"
+    // }).addTo(map);
+    // boundaryRectangle.bindPopup("<b>Palo Alto Service Area</b><br/>Situational Awareness Coverage Zone");
+
+    l.geoJSON(paloAltoBoundary).addTo(map);
     
     incidentLayer = L.layerGroup().addTo(map);
     personnelLayer = L.layerGroup().addTo(map);
@@ -146,9 +152,17 @@ function updateShelterMarkers(shelters) {
     });
 }
 
-function loadIncidentsByType() { alert("Loading incidents by type..."); }
-function loadUnits() { loadPersonnel(); }
-function loadResources() { alert("Loading resource centers..."); }
+function loadIncidentsByType() { 
+    alert("Loading incidents by type..."); 
+}
+
+function loadUnits() { 
+    loadPersonnel(); 
+}
+
+function loadResources() { 
+    alert("Loading resource centers..."); 
+}
 
 document.addEventListener("DOMContentLoaded", function() {
     initMap();
