@@ -19,7 +19,7 @@ DB_HOST='localhost'
 DB_PORT=5432
 DB_NAME='situational_awareness'
 
-echo -e "${BLUE}🚨 Palo Alto Situational Awareness System Installer 🚨${NC}"
+echo -e "${BLUE}🚨 Situational Awareness System Installer 🚨${NC}"
 
 if [[ $EUID -ne 0 ]]; then
     echo -e "${RED}This script must be run as root (use sudo)${NC}"
@@ -191,33 +191,24 @@ fi
 
 # Create database and user
 echo -e "${BLUE}Creating database and user...${NC}"
-sudo -u postgres psql -c "DROP database IF EXISTS palo_alto_situational_awareness;" || true
-sudo -u postgres createdb palo_alto_situational_awareness || echo -e "${YELLOW}Database may already exist${NC}"
-sudo -u postgres psql -c "DROP USER IF EXISTS situational_awareness_user;" || true
-sudo -u postgres psql -c "CREATE USER situational_awareness_user WITH PASSWORD '$DB_PASSWORD';" || true
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE palo_alto_situational_awareness TO situational_awareness_user;" || true
-sudo -u postgres psql -c "ALTER USER situational_awareness_user CREATEDB;" || true
+sudo -u postgres psql -c "DROP database IF EXISTS '$DB_NAME';" || true
+sudo -u postgres createdb $DB_NAME || echo -e "${YELLOW}Database may already exist${NC}"
+sudo -u postgres psql -c "DROP USER IF EXISTS '$DB_USER';" || true
+sudo -u postgres psql -c "CREATE USER '$DB_USER' WITH PASSWORD '$DB_PASSWORD';" || true
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE '$DB_NAME' TO '$DB_USER';" || true
+sudo -u postgres psql -c "ALTER USER '$DB_USER' CREATEDB;" || true
 
 # Grant schema permissions
 echo -e "${BLUE}Setting up database permissions...${NC}"
-sudo -u postgres psql -d palo_alto_situational_awareness -c "GRANT ALL ON SCHEMA public TO situational_awareness_user;" || true
-sudo -u postgres psql -d palo_alto_situational_awareness -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO situational_awareness_user;" || true
-sudo -u postgres psql -d palo_alto_situational_awareness -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO situational_awareness_user;" || true
-sudo -u postgres psql -d palo_alto_situational_awareness -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO situational_awareness_user;" || true
-sudo -u postgres psql -d palo_alto_situational_awareness -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO situational_awareness_user;" || true
-
-# FIXED: Load database schema with absolute path
-# echo -e "${BLUE}Loading database schema from $APP_DIR/database/schema.sql...${NC}"
-# if [[ -f "$APP_DIR/database/schema.sql" ]]; then
-#     sudo -u postgres psql -d palo_alto_situational_awareness -f "$APP_DIR/database/schema.sql" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
-# else
-#     echo -e "${RED}Error: Schema file not found at $APP_DIR/database/schema.sql${NC}"
-#     exit 1
-# fi
+sudo -u postgres psql -d '$DB_NAME' -c "GRANT ALL ON SCHEMA public TO '$DB_USER';" || true
+sudo -u postgres psql -d '$DB_NAME' -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO '$DB_USER';" || true
+sudo -u postgres psql -d '$DB_NAME' -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO '$DB_USER';" || true
+sudo -u postgres psql -d '$DB_NAME' -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO '$DB_USER';" || true
+sudo -u postgres psql -d '$DB_NAME' -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO '$DB_USER';" || true
 
 echo -e "${BLUE}Loading database schema from $SCHEMA_TMP...${NC}"
 if [[ -f "$SCHEMA_TMP" ]]; then
-    sudo -u postgres psql -d palo_alto_situational_awareness -f "$SCHEMA_TMP" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
+    sudo -u postgres psql -d '$DB_NAME' -f "$SCHEMA_TMP" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
 else
     echo -e "${RED}Error: Schema file not found at $SCHEMA_TMP${NC}"
     exit 1
@@ -278,7 +269,7 @@ chmod 600 "$APP_DIR/.env"
 # Create systemd service file with proper environment handling
 cat > /etc/systemd/system/situational-awareness.service << SERVICEFILE
 [Unit]
-Description=Palo Alto Situational Awareness System
+Description=Situational Awareness System
 Documentation=https://github.com/iannucci/situational-awareness
 After=network.target $PG_SERVICE.service
 Wants=$PG_SERVICE.service
@@ -520,7 +511,7 @@ cat > /usr/local/bin/emergency-backup.sh << 'BACKUPEOF'
 #!/bin/bash
 BACKUP_DIR="/var/backups/situational-awareness"
 DATE=$(date +%Y%m%d_%H%M%S)
-DB_NAME="palo_alto_situational_awareness"
+DB_NAME="situational_awareness"
 DB_USER="situational_awareness_user"
 
 # Load configuration
@@ -617,7 +608,7 @@ echo -e "${BLUE}Troubleshooting:${NC}"
 echo "• Service logs: sudo journalctl -u situational-awareness -f"
 echo "• Nginx logs: sudo tail -f /var/log/nginx/error.log"
 echo "• Test API: curl http://localhost:3000/api/health"
-echo "• Test Database: psql -h localhost -d palo_alto_situational_awareness -U situational_awareness_user -c 'SELECT 1;'"
+echo "• Test Database: psql -h localhost -d $DB_NAME -U $DB_USER -c 'SELECT 1;'"
 echo ""
 
 if systemctl is-active --quiet situational-awareness && systemctl is-active --quiet nginx && systemctl is-active --quiet $PG_SERVICE; then
