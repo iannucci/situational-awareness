@@ -90,7 +90,7 @@ sudo mkdir -p "$ETC_DIR"
 echo "Copying project files"
 sudo cp -r database "$APP_DIR/"
 sudo cp -r src "$APP_DIR/"
-sudo cp nginx.conf "$ETC_DIR/"
+# sudo cp nginx.conf "$ETC_DIR/"
 
 # FIXED: Get the absolute path of the project directory
 # PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
