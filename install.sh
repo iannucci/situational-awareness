@@ -76,6 +76,11 @@ while [[ "$#" -gt 0 ]]; do
     shift # Shift past the current argument (option or flag)
 done
 
+if [[ $DB_PASSWORD -eq 'none' ]]; then
+    echo -e "${RED}Must specify a --password option${NC}"
+    exit 1
+fi
+
 echo "Creating app dir at $APP_DIR"
 sudo mkdir -p "$APP_DIR"
 sudo mkdir -p "$ETC_DIR"
@@ -505,51 +510,51 @@ systemctl start situational-awareness
 nginx -t && systemctl restart nginx && systemctl enable nginx
 
 # Save configuration
-echo "DB_PASSWORD=$DB_PASSWORD" > /etc/situational-awareness.conf
-echo "PROJECT_ROOT=$APP_DIR" >> /etc/situational-awareness.conf
-echo "POSTGRES_VERSION=$PG_VERSION" >> /etc/situational-awareness.conf
-chmod 600 /etc/situational-awareness.conf
+echo "DB_PASSWORD=$DB_PASSWORD" > /etc/$DB_NAME/$DB_NAME.conf
+echo "PROJECT_ROOT=$APP_DIR" >> /etc/$DB_NAME/$DB_NAME.conf
+echo "POSTGRES_VERSION=$PG_VERSION" >> /etc/$DB_NAME/$DB_NAME.conf
+chmod 600 /etc/$DB_NAME/$DB_NAME.conf
 
 # Create backup script
-cat > /usr/local/bin/emergency-backup.sh << 'BACKUPEOF'
-#!/bin/bash
-BACKUP_DIR="/var/backups/situational-awareness"
-DATE=$(date +%Y%m%d_%H%M%S)
-DB_NAME="situational_awareness"
-DB_USER="situational_awareness_user"
+# cat > /usr/local/bin/emergency-backup.sh << 'BACKUPEOF'
+# #!/bin/bash
+# BACKUP_DIR="/var/backups/situational-awareness"
+# DATE=$(date +%Y%m%d_%H%M%S)
+# DB_NAME="situational_awareness"
+# DB_USER="situational_awareness_user"
 
-# Load configuration
-if [[ -f /etc/situational-awareness.conf ]]; then
-    source /etc/situational-awareness.conf
-fi
+# # Load configuration
+# if [[ -f /etc/situational-awareness.conf ]]; then
+#     source /etc/situational-awareness.conf
+# fi
 
-mkdir -p "$BACKUP_DIR"
+# mkdir -p "$BACKUP_DIR"
 
-# Database backup
-if [[ -n "$DB_PASSWORD" ]]; then
-    export PGPASSWORD="$DB_PASSWORD"
-    pg_dump -h localhost -U "$DB_USER" "$DB_NAME" --no-password | gzip > "$BACKUP_DIR/database_$DATE.sql.gz"
-fi
+# # Database backup
+# if [[ -n "$DB_PASSWORD" ]]; then
+#     export PGPASSWORD="$DB_PASSWORD"
+#     pg_dump -h localhost -U "$DB_USER" "$DB_NAME" --no-password | gzip > "$BACKUP_DIR/database_$DATE.sql.gz"
+# fi
 
-# Application backup
-if [[ -n "$APP_DIR" ]] && [[ -d "$APP_DIR" ]]; then
-    tar -czf "$BACKUP_DIR/application_$DATE.tar.gz" \
-        --exclude='node_modules' \
-        --exclude='logs' \
-        --exclude='.git' \
-        -C "$(dirname "$APP_DIR")" "$(basename "$APP_DIR")"
-fi
+# # Application backup
+# if [[ -n "$APP_DIR" ]] && [[ -d "$APP_DIR" ]]; then
+#     tar -czf "$BACKUP_DIR/application_$DATE.tar.gz" \
+#         --exclude='node_modules' \
+#         --exclude='logs' \
+#         --exclude='.git' \
+#         -C "$(dirname "$APP_DIR")" "$(basename "$APP_DIR")"
+# fi
 
-# Keep only last 30 days of backups
-find "$BACKUP_DIR" -type f -mtime +30 -delete
+# # Keep only last 30 days of backups
+# find "$BACKUP_DIR" -type f -mtime +30 -delete
 
-echo "Backup completed: $DATE"
-BACKUPEOF
+# echo "Backup completed: $DATE"
+# BACKUPEOF
 
-chmod +x /usr/local/bin/emergency-backup.sh
+# chmod +x /usr/local/bin/emergency-backup.sh
 
-# Add to crontab for daily backups at 2 AM
-(crontab -l 2>/dev/null | grep -v emergency-backup; echo "0 2 * * * /usr/local/bin/emergency-backup.sh") | crontab -
+# # Add to crontab for daily backups at 2 AM
+# (crontab -l 2>/dev/null | grep -v emergency-backup; echo "0 2 * * * /usr/local/bin/emergency-backup.sh") | crontab -
 
 # Wait for services to fully start
 sleep 10
