@@ -336,7 +336,7 @@ echo -e "${BLUE}Creating nginx configuration for system installation...${NC}"
 cat > /tmp/situational-awareness-nginx.conf << 'NGINXCONF'
 server {
     listen 80;
-    server_name $DB_HOST;
+    server_name $host;
     
     # Security headers
     add_header X-Frame-Options DENY always;
