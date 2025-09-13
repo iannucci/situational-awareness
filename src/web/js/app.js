@@ -51,14 +51,25 @@ function initMap() {
 
 function loadDemoData() {
     const incidents = [
-        { location: [37.4419, -122.1630], type: "Fire", severity: "High", description: "Structure fire on University Ave" },
-        { location: [37.4505, -122.1334], type: "Medical", severity: "Medium", description: "Medical emergency at Stanford Shopping Center" }
+        { location: [37.45308016263716, -122.1276251638624], type: "Stage 1", severity: "Medium", description: "San Francisquito @ W. Bayshore" },
+        { location: [37.4510260206479, -122.16704514852604], type: "Stage 2", severity: "High", description: "San Francisquito @ Waverley" },
+        { location: [37.45652728272695, -122.15370626837039], type: "Stage 2", severity: "High", description: "San Francisquito @ Chaucer" },
+        { location: [37.44031131828777, -122.11335214734531], type: "Stage 2", severity: "High", description: "Matadero @ W. Bayshore" },
+        { location: [37.429437549693056, -122.10516541081658], type: "Stage 2", severity: "High", description: "Adobe @ E. Meadow" }
     ];
     
     incidents.forEach(incident => {
-        const marker = L.circleMarker(incident.location, {
-            color: "#e74c3c", fillColor: "#e74c3c", fillOpacity: 0.8, radius: 8
-        }).bindPopup(`<b>${incident.type}</b><br/>${incident.description}<br/>Severity: ${incident.severity}`);
+        const mySvgIcon = L.icon({
+            iconUrl: 'assets/icons/bridge-water-solid-full.svg',
+            iconSize: [38, 95], // size of the icon
+            iconAnchor: [22, 94], // point of the icon which will correspond to marker's location
+            popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+        });
+        // const marker = L.marker([incident.latitude, incident.longitude], { icon: mySvgIcon }).addTo(map);
+        const marker = L.marker([incident.latitude, incident.longitude], { icon: mySvgIcon, color: "#e74c3c" })
+        // const marker = L.circleMarker(incident.location, {
+        //     color: "#e74c3c", fillColor: "#e74c3c", fillOpacity: 0.8, radius: 8
+        // }).bindPopup(`<b>${incident.type}</b><br/>${incident.description}<br/>Severity: ${incident.severity}`);
         incidentLayer.addLayer(marker);
     });
     
@@ -75,8 +86,8 @@ function loadDemoData() {
     });
     
     const shelters = [
-        { location: [37.4282, -122.1549], name: "Mitchell Park Community Center", capacity: 150, available: 75 },
-        { location: [37.4092, -122.1345], name: "Cubberley Community Center", capacity: 200, available: 120 }
+        { location: [37.422469634374515, -122.11322286246323], name: "Mitchell Park Community Center", capacity: 150, available: 75 },
+        { location: [37.417331206600764, -122.10844229634911], name: "Cubberley Community Center", capacity: 200, available: 120 }
     ];
     
     shelters.forEach(shelter => {
