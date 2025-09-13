@@ -11,41 +11,57 @@ const path = require("path");
 // Load environment variables
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
-const config = require('./config.js');
+// const config = require('./config.js');
 
-console.log("🚨 Situational Awareness API Starting...");
+console.log("🚨 [server] Situational Awareness API Starting...");
 
 // Route imports with error handling
 let incidentsRouter, personnelRouter, sheltersRouter;
 
 try {
     incidentsRouter = require("./routes/incidents");
-    console.log("✅ Loaded incidents routes");
+    console.log("✅ [server] Loaded incidents routes");
 } catch (err) {
-    console.warn("⚠️ incidents route not found, creating placeholder");
+    console.warn("⚠️ [server] incidents route not found, creating placeholder");
     incidentsRouter = express.Router();
     incidentsRouter.get("/active", (req, res) => res.json({ success: true, data: [], note: "Route not implemented" }));
 }
 
 try {
     personnelRouter = require("./routes/personnel");
-    console.log("✅ Loaded personnel routes");
+    console.log("✅ [server] Loaded personnel routes");
 } catch (err) {
-    console.warn("⚠️ personnel route not found, creating placeholder");
+    console.warn("⚠️ [server] personnel route not found, creating placeholder");
     personnelRouter = express.Router();
     personnelRouter.get("/status", (req, res) => res.json({ success: true, data: [], note: "Route not implemented" }));
 }
 
 try {
     sheltersRouter = require("./routes/shelters");
-    console.log("✅ Loaded shelters routes");
+    console.log("✅ [server] Loaded shelters routes");
 } catch (err) {
-    console.warn("⚠️ shelters route not found, creating placeholder");
+    console.warn("⚠️ [server] shelters route not found, creating placeholder");
     sheltersRouter = express.Router();
     sheltersRouter.get("/available", (req, res) => res.json({ success: true, data: [], note: "Route not implemented" }));
 }
 
-console.log("📝 Configuration loaded:", {
+// Configuration
+const config = {
+    port: process.env.PORT || 3000,
+    database: {
+        host: process.env.DB_HOST || "localhost",
+        port: parseInt(process.env.DB_PORT) || 5432,
+        database: process.env.DB_NAME || "palo_alto_emergency",
+        user: process.env.DB_USER || "emergency_user",
+        password: process.env.DB_PASSWORD || "emergency_pass",
+        ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+        connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 30000,
+        max: 20,
+        idleTimeoutMillis: 30000,
+    }
+};
+
+console.log("📝 [server] Configuration loaded:", {
     port: config.port,
     database: {
         host: config.database.host,
@@ -69,14 +85,14 @@ try {
     const testConnection = async () => {
         try {
             const client = await pool.connect();
-            console.log("🔌 Testing database connection...");
+            console.log("🔌 [server] Testing database connection...");
             const result = await client.query('SELECT NOW() as current_time');
-            console.log("✅ Database connection successful:", result.rows[0].current_time);
+            console.log("✅ [server] Database connection successful:", result.rows[0].current_time);
             client.release();
             return true;
         } catch (err) {
-            console.error("❌ Database connection failed:", err.message);
-            console.log("⚠️ Continuing without database connection (using mock data)");
+            console.error("❌ [server] Database connection failed:", err.message);
+            console.log("⚠️ [server] Continuing without database connection (using mock data)");
             return false;
         }
     };
@@ -85,20 +101,20 @@ try {
     testConnection().then((connected) => {
         if (connected) {
             app.set("db", pool);
-            console.log("✅ Database pool configured and ready");
+            console.log("✅ [server] Database pool configured and ready");
         } else {
-            console.log("⚠️ Running without database connection");
+            console.log("⚠️ [server] Running without database connection");
         }
     });
 
     // Handle pool errors
     pool.on('error', (err) => {
-        console.error('❌ Database pool error:', err);
+        console.error('❌ [server] Database pool error:', err);
     });
 
 } catch (error) {
-    console.error("❌ Failed to create database pool:", error.message);
-    console.log("⚠️ Continuing without database connection...");
+    console.error("❌ [server] Failed to create database pool:", error.message);
+    console.log("⚠️ [server] Continuing without database connection...");
 }
 
 // Middleware
@@ -166,7 +182,7 @@ app.get("/api/health", async (req, res) => {
             health.status = "partial";
         }
     } catch (error) {
-        console.error("Health check database error:", error.message);
+        console.error("[server] Health check database error:", error.message);
         health.services.database = "error";
         health.status = "partial";
     }
@@ -197,7 +213,7 @@ const wss = new WebSocket.Server({ server, path: "/ws" });
 const wsClients = new Set();
 
 wss.on("connection", (ws, req) => {
-    console.log("🔌 WebSocket client connected from:", req.socket.remoteAddress);
+    console.log("🔌 [server] WebSocket client connected from:", req.socket.remoteAddress);
     wsClients.add(ws);
     
     ws.send(JSON.stringify({
@@ -207,19 +223,19 @@ wss.on("connection", (ws, req) => {
     }));
     
     ws.on("close", () => { 
-        console.log("🔌 WebSocket client disconnected");
+        console.log("🔌 [server] WebSocket client disconnected");
         wsClients.delete(ws); 
     });
     
     ws.on("error", (error) => { 
-        console.error("WebSocket error:", error); 
+        console.error("[server] WebSocket error:", error); 
         wsClients.delete(ws); 
     });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error("🚨 API Error:", err);
+    console.error("🚨 [server] API Error:", err);
     res.status(500).json({
         success: false,
         error: { 
@@ -240,12 +256,12 @@ app.use((req, res) => {
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-    console.log('🔄 Received SIGTERM, shutting down gracefully');
+    console.log('🔄 [server] Received SIGTERM, shutting down gracefully');
     server.close(() => {
-        console.log('✅ HTTP server closed');
+        console.log('✅ [server] HTTP server closed');
         if (pool) {
             pool.end(() => {
-                console.log('✅ Database pool closed');
+                console.log('✅ [server] Database pool closed');
                 process.exit(0);
             });
         } else {
@@ -255,12 +271,12 @@ process.on('SIGTERM', async () => {
 });
 
 process.on('SIGINT', async () => {
-    console.log('🔄 Received SIGINT, shutting down gracefully');
+    console.log('🔄 [server] Received SIGINT, shutting down gracefully');
     server.close(() => {
-        console.log('✅ HTTP server closed');
+        console.log('✅ [erver] HTTP server closed');
         if (pool) {
             pool.end(() => {
-                console.log('✅ Database pool closed');
+                console.log('✅ [server] Database pool closed');
                 process.exit(0);
             });
         } else {
@@ -272,7 +288,7 @@ process.on('SIGINT', async () => {
 // Start server
 server.listen(config.port, () => {
     console.log(`
-🚨 Situational Awareness API Server
+🚨 [server] Situational Awareness API Server
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   🌐 Server: http://localhost:${config.port}
   📊 Health: http://localhost:${config.port}/api/health
