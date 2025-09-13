@@ -20,6 +20,13 @@ chmod +x install.sh
 sudo ./install.sh --user DATABASE_USERNAME --password PASSWORD
 ```
 
+## API URL examples
+```
+http://host:3000/api/v1/incidents/active
+http://host:3000/api/v1/personnel/status
+http://host:3000/api/v1/shelters/available
+```
+
 ## 🛠️ Technology Stack
 
 - **Frontend**: HTML5, CSS3, JavaScript, Leaflet.js

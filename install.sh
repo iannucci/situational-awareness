@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# API example
+# http://host:3000/api/v1/incidents/active
+
 set -e
 
 RED='\033[0;31m'
