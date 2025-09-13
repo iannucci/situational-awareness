@@ -250,7 +250,7 @@ ON CONFLICT (unit_id, timestamp) DO NOTHING;
 DO $$
 BEGIN
     RAISE NOTICE '=======================================================';
-    RAISE NOTICE 'Situational Awareness Database Schema Setup Complete!';
-    RAISE NOTICE 'Ready for emergency response operations!';
+    RAISE NOTICE 'Situational Awareness Database Schema Setup Complete';
+    RAISE NOTICE 'Ready for emergency response operations';
     RAISE NOTICE '=======================================================';
 END $$;

@@ -287,7 +287,7 @@ ENVFILE
 chmod 600 "$APP_DIR/.env"
 
 # Create systemd service file with proper environment handling
-cat > /etc/systemd/system/situational-awareness.service << SERVICEFILE
+cat > /etc/systemd/system/$NAME.service << SERVICEFILE
 [Unit]
 Description=Situational Awareness System
 Documentation=https://github.com/iannucci/situational-awareness
@@ -304,7 +304,7 @@ Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=situational-awareness
+SyslogIdentifier=$NAME
 
 # FIXED: Environment file
 EnvironmentFile=$APP_DIR/.env
@@ -321,7 +321,7 @@ WantedBy=multi-user.target
 SERVICEFILE
 
 systemctl daemon-reload
-systemctl enable situational-awareness
+systemctl enable $NAME
 
 echo -e "${BLUE}Configuring Nginx...${NC}"
 WEB_DIR="$APP_DIR/src/web"
@@ -470,16 +470,16 @@ NGINXCONF
 # Configure nginx based on system type
 if [[ -d /etc/nginx/sites-available ]]; then
     # Ubuntu/Debian style
-    cp /tmp/situational-awareness-nginx.conf /etc/nginx/sites-available/situational-awareness
+    cp /tmp/situational-awareness-nginx.conf /etc/nginx/sites-available/$NAME
     
     # Enable site and disable default
-    ln -sf /etc/nginx/sites-available/situational-awareness /etc/nginx/sites-enabled/
+    ln -sf /etc/nginx/sites-available/$NAME /etc/nginx/sites-enabled/
     rm -f /etc/nginx/sites-enabled/default
     
     echo -e "${GREEN}✅ Configured nginx (Ubuntu/Debian style)${NC}"
 else
     # RHEL/CentOS style
-    cp /tmp/situational-awareness-nginx.conf /etc/nginx/conf.d/situational-awareness.conf
+    cp /tmp/situational-awareness-nginx.conf /etc/nginx/conf.d/$NAME.conf
     
     # Disable default server block in main config if it exists
     if [[ -f /etc/nginx/nginx.conf ]]; then
@@ -500,12 +500,12 @@ if ! nginx -t; then
     echo -e "${YELLOW}Checking nginx configuration...${NC}"
     
     # Show the configuration we created
-    if [[ -f /etc/nginx/sites-available/situational-awareness ]]; then
-        echo -e "${BLUE}Configuration file: /etc/nginx/sites-available/situational-awareness${NC}"
-        head -20 /etc/nginx/sites-available/situational-awareness
-    elif [[ -f /etc/nginx/conf.d/situational-awareness.conf ]]; then
-        echo -e "${BLUE}Configuration file: /etc/nginx/conf.d/situational-awareness.conf${NC}"
-        head -20 /etc/nginx/conf.d/situational-awareness.conf
+    if [[ -f /etc/nginx/sites-available/$NAME ]]; then
+        echo -e "${BLUE}Configuration file: /etc/nginx/sites-available/$NAME{NC}"
+        head -20 /etc/nginx/sites-available/$NAME
+    elif [[ -f /etc/nginx/conf.d/$NAME.conf ]]; then
+        echo -e "${BLUE}Configuration file: /etc/nginx/conf.d/$NAME.conf${NC}"
+        head -20 /etc/nginx/conf.d$NAME.conf
     fi
     
     # Show nginx error
@@ -518,56 +518,18 @@ fi
 echo -e "${GREEN}✅ Nginx configuration test passed${NC}"
 
 # Start services
-echo -e "${BLUE}Starting services...${NC}"
-systemctl start situational-awareness
-nginx -t && systemctl restart nginx && systemctl enable nginx
+echo -e "${BLUE}Restarting services...${NC}"
+systemctl restart $NAME
+nginx -t
+echo -e "${BLUE}Restarting nginx...${NC}"
+systemctl restart nginx
+systemctl enable nginx
 
 # Save configuration
 echo "DB_PASSWORD=$DB_PASSWORD" > $ETC_DIR/$NAME.conf
 echo "PROJECT_ROOT=$APP_DIR" >> $ETC_DIR/$NAME.conf
 echo "POSTGRES_VERSION=$PG_VERSION" >> $ETC_DIR/$NAME.conf
 chmod 600 $ETC_DIR/$NAME.conf
-
-# Create backup script
-# cat > /usr/local/bin/emergency-backup.sh << 'BACKUPEOF'
-# #!/bin/bash
-# BACKUP_DIR="/var/backups/situational-awareness"
-# DATE=$(date +%Y%m%d_%H%M%S)
-# DB_NAME="situational_awareness"
-# DB_USER="situational_awareness_user"
-
-# # Load configuration
-# if [[ -f /etc/situational-awareness.conf ]]; then
-#     source /etc/situational-awareness.conf
-# fi
-
-# mkdir -p "$BACKUP_DIR"
-
-# # Database backup
-# if [[ -n "$DB_PASSWORD" ]]; then
-#     export PGPASSWORD="$DB_PASSWORD"
-#     pg_dump -h localhost -U "$DB_USER" "$DB_NAME" --no-password | gzip > "$BACKUP_DIR/database_$DATE.sql.gz"
-# fi
-
-# # Application backup
-# if [[ -n "$APP_DIR" ]] && [[ -d "$APP_DIR" ]]; then
-#     tar -czf "$BACKUP_DIR/application_$DATE.tar.gz" \
-#         --exclude='node_modules' \
-#         --exclude='logs' \
-#         --exclude='.git' \
-#         -C "$(dirname "$APP_DIR")" "$(basename "$APP_DIR")"
-# fi
-
-# # Keep only last 30 days of backups
-# find "$BACKUP_DIR" -type f -mtime +30 -delete
-
-# echo "Backup completed: $DATE"
-# BACKUPEOF
-
-# chmod +x /usr/local/bin/emergency-backup.sh
-
-# # Add to crontab for daily backups at 2 AM
-# (crontab -l 2>/dev/null | grep -v emergency-backup; echo "0 2 * * * /usr/local/bin/emergency-backup.sh") | crontab -
 
 # Wait for services to fully start
 sleep 10
@@ -589,14 +551,14 @@ else
     tail -n 10 /var/log/nginx/error.log || true
 fi
 
-if systemctl is-active --quiet situational-awareness; then
+if systemctl is-active --quiet $NAME; then
     echo -e "${GREEN}✅ Situational Awareness System is running${NC}"
 else
     echo -e "${RED}❌ Situational Awareness System failed to start${NC}"
     echo "Checking service status:"
-    systemctl status situational-awareness --no-pager || true
+    systemctl status $NAME --no-pager || true
     echo "Checking logs:"
-    journalctl -u situational-awareness -n 20 --no-pager || true
+    journalctl -u $NAME -n 20 --no-pager || true
 fi
 
 # Test API health
@@ -620,23 +582,23 @@ echo "📁 Web Root: $WEB_ROOT"
 echo "🔑 Database Password: $DB_PASSWORD"
 echo ""
 echo -e "${BLUE}Service Management:${NC}"
-echo "• Start:   sudo systemctl start situational-awareness"
-echo "• Stop:    sudo systemctl stop situational-awareness"
-echo "• Restart: sudo systemctl restart situational-awareness"
-echo "• Status:  sudo systemctl status situational-awareness"
-echo "• Logs:    sudo journalctl -u situational-awareness -f"
+echo "• Start:   sudo systemctl start $NAME"
+echo "• Stop:    sudo systemctl stop $NAME"
+echo "• Restart: sudo systemctl restart $NAME"
+echo "• Status:  sudo systemctl status $NAME"
+echo "• Logs:    sudo journalctl -u $NAME -f"
 echo ""
 echo -e "${BLUE}Troubleshooting:${NC}"
-echo "• Service logs: sudo journalctl -u situational-awareness -f"
+echo "• Service logs: sudo journalctl -u $NAME -f"
 echo "• Nginx logs: sudo tail -f /var/log/nginx/error.log"
 echo "• Test API: curl http://localhost:3000/api/health"
 echo "• Test Database: psql -h localhost -d $DB_NAME -U $DB_USER -c 'SELECT 1;'"
 echo ""
 
-if systemctl is-active --quiet situational-awareness && systemctl is-active --quiet nginx && systemctl is-active --quiet $PG_SERVICE; then
+if systemctl is-active --quiet $NAME && systemctl is-active --quiet nginx && systemctl is-active --quiet $PG_SERVICE; then
     echo -e "${GREEN}🚨 All services running - Situational Awareness System Ready! 🚨${NC}"
 else
     echo -e "${YELLOW}⚠️ Some services may need attention. Check the status above.${NC}"
-    echo -e "${YELLOW}Run: sudo journalctl -u situational-awareness -f${NC}"
+    echo -e "${YELLOW}Run: sudo journalctl -u $NAME -f${NC}"
 fi
 echo "=============================================="
