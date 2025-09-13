@@ -328,7 +328,7 @@ find "$WEB_ROOT" -type d -exec chmod 755 {} \;
 echo -e "${BLUE}Creating nginx configuration for system installation...${NC}"
 
 # Create nginx config for system installation (different from Docker version)
-cat > /tmp/situational-awareness-nginx.conf << NGINXCONF
+cat > /tmp/situational-awareness-nginx.conf << 'NGINXCONF'
 server {
     listen 80;
     server_name $DB_HOST;
@@ -341,7 +341,7 @@ server {
     
     # Main application - serve static files
     location / {
-        root /var/www/$DB_NAME;
+        root /var/www/$host;
         index index.html index.htm;
         try_files $uri $uri/ /index.html;
         
