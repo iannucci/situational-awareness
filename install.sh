@@ -213,6 +213,7 @@ sudo -u postgres psql -c "DROP OWNED BY $DB_USER;" || true
 sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" || true
 
 echo -e "${BLUE}Creating user $DB_USER...${NC}"
+echo "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" 
 sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" || true
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" || true
 sudo -u postgres psql -c "ALTER USER $DB_USER CREATEDB;" || true
