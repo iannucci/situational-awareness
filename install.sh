@@ -19,7 +19,7 @@ SCHEMA_TMP="/tmp/$NAME_schema.sql"
 
 DB_USER='situational_awareness_user'
 DB_PASSWORD='none'
-DB_HOST='localhost'
+DB_HOST='pa-sitrep.local.mesh'
 DB_PORT=5432
 DB_NAME='situational_awareness'
 
@@ -316,7 +316,7 @@ if [[ ! -d "$WEB_DIR" ]]; then
 fi
 
 # Copy web files to standard location
-WEB_ROOT="/var/www/situational-awareness"
+WEB_ROOT="/var/www/$DB_NAME"
 echo -e "${BLUE}Setting up web root at $WEB_ROOT...${NC}"
 mkdir -p "$WEB_ROOT"
 cp -r "$WEB_DIR/"* "$WEB_ROOT/"
@@ -328,10 +328,9 @@ find "$WEB_ROOT" -type d -exec chmod 755 {} \;
 echo -e "${BLUE}Creating nginx configuration for system installation...${NC}"
 
 # Create nginx config for system installation (different from Docker version)
-cat > /tmp/situational-awareness-nginx.conf << 'NGINXCONF'
-server {
+cat > /tmp/situational-awareness-nginx.conf << NGINXCONF
     listen 80;
-    server_name pa-sitrep.local.mesh;
+    server_name $DB_HOST;
     
     # Security headers
     add_header X-Frame-Options DENY always;
@@ -341,7 +340,7 @@ server {
     
     # Main application - serve static files
     location / {
-        root /var/www/situational-awareness;
+        root /var/www/$DB_NAME;
         index index.html index.htm;
         try_files $uri $uri/ /index.html;
         
