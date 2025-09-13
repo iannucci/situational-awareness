@@ -510,10 +510,10 @@ systemctl start situational-awareness
 nginx -t && systemctl restart nginx && systemctl enable nginx
 
 # Save configuration
-echo "DB_PASSWORD=$DB_PASSWORD" > /etc/$DB_NAME/$DB_NAME.conf
-echo "PROJECT_ROOT=$APP_DIR" >> /etc/$DB_NAME/$DB_NAME.conf
-echo "POSTGRES_VERSION=$PG_VERSION" >> /etc/$DB_NAME/$DB_NAME.conf
-chmod 600 /etc/$DB_NAME/$DB_NAME.conf
+echo "DB_PASSWORD=$DB_PASSWORD" > $ETC_DIR/$NAME.conf
+echo "PROJECT_ROOT=$APP_DIR" >> $ETC_DIR/$NAME.conf
+echo "POSTGRES_VERSION=$PG_VERSION" >> $ETC_DIR/$NAME.conf
+chmod 600 $ETC_DIR/$NAME.conf
 
 # Create backup script
 # cat > /usr/local/bin/emergency-backup.sh << 'BACKUPEOF'
