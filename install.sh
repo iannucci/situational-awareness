@@ -332,7 +332,7 @@ if [[ ! -d "$WEB_DIR" ]]; then
 fi
 
 # Copy web files to standard location
-WEB_ROOT="/var/www/$DB_NAME"
+WEB_ROOT="/var/www/$NAME"
 echo -e "${BLUE}Setting up web root at $WEB_ROOT...${NC}"
 mkdir -p "$WEB_ROOT"
 cp -r "$WEB_DIR/"* "$WEB_ROOT/"
@@ -361,7 +361,7 @@ server {
     location / {
         root /var/www/$host;
         index index.html index.htm;
-        try_files $uri $uri/ /index.html;
+        try_files $uri $uri/ =404;
         
         # Cache static assets
         location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg)$ {
