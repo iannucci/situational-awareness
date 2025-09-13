@@ -78,7 +78,7 @@ while [[ "$#" -gt 0 ]]; do
     shift # Shift past the current argument (option or flag)
 done
 
-if [ "$DB_PASSWORD" -eq "'none"' ]; then
+if [ "$DB_PASSWORD" -eq "'none'" ]; then
     echo -e "${RED}Must specify a --password${NC}"
     exit 1
 fi
