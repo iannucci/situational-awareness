@@ -204,12 +204,12 @@ fi
 echo -e "${BLUE}Creating database...${NC}"
 sudo -u postgres psql -c "DROP database IF EXISTS $DB_NAME;" || true
 sudo -u postgres createdb $DB_NAME || echo -e "${YELLOW}Database may already exist${NC}"
-# sudo -u postgres psql -c "DROP OWNED BY $DB_USER;" || true
+sudo -u postgres psql -c "DROP OWNED BY $DB_USER;" || true
 
-echo -e "${BLUE}Dropping user $DB_USER if exists...${NC}"
-sudo -u postgres psql -c "SELECT 'DROP OWNED BY $DB_USER' FROM pg_roles WHERE rolname = '$DB_USER'\\gexec"
-echo $drop_owned_by_command | psql -U postgres $DB_NAME
-sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" || true
+# echo -e "${BLUE}Dropping user $DB_USER if exists...${NC}"
+# sudo -u postgres psql -c "SELECT 'DROP OWNED BY $DB_USER' FROM pg_roles WHERE rolname = '$DB_USER' \gexec"
+# echo $drop_owned_by_command | psql -U postgres $DB_NAME
+# sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" || true
 
 echo -e "${BLUE}Creating user $DB_USER...${NC}"
 sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" || true
