@@ -53,7 +53,9 @@ while [[ "$#" -gt 0 ]]; do
             shift
             ;;
         --password)
-            DB_PASSWORD="$2"
+            ESCAPED_STRING=$(echo "$2" | sed "s/'/''/g")
+            DB_PASSWORD=$ESCAPED_STRING
+            echo "Password is set to $ESCAPED_STRING"
             shift
             ;;
         --host)
@@ -203,7 +205,7 @@ echo -e "${BLUE}Creating database and user...${NC}"
 sudo -u postgres psql -c "DROP database IF EXISTS $DB_NAME;" || true
 sudo -u postgres createdb $DB_NAME || echo -e "${YELLOW}Database may already exist${NC}"
 sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" || true
-sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD $DB_PASSWORD;" || true
+sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" || true
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" || true
 sudo -u postgres psql -c "ALTER USER $DB_USER CREATEDB;" || true
 
