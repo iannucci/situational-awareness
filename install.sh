@@ -207,7 +207,7 @@ sudo -u postgres createdb $DB_NAME || echo -e "${YELLOW}Database may already exi
 # sudo -u postgres psql -c "DROP OWNED BY $DB_USER;" || true
 
 echo -e "${BLUE}Dropping user $DB_USER if exists...${NC}"
-sudo -u postgres psql -c "SELECT 'DROP OWNED BY $DB_USER' FROM pg_roles WHERE rolname = '$DB_USER'\gexec"
+sudo -u postgres psql -c "SELECT 'DROP OWNED BY $DB_USER' FROM pg_roles WHERE rolname = '$DB_USER'\\gexec"
 echo $drop_owned_by_command | psql -U postgres $DB_NAME
 sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" || true
 
