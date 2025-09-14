@@ -344,8 +344,6 @@ find "$WEB_ROOT" -type d -exec chmod 755 {} \;
 echo -e "${BLUE}Creating nginx configuration for system installation...${NC}"
 
 # Create nginx config for system installation (different from Docker version)
-# removed         try_files $uri $uri/ /index.html;
-# replaced with   try_files $uri $uri/ =404;
 cat > /tmp/situational-awareness-nginx.conf << NGINXCONF
 server {
     listen 80;
@@ -361,7 +359,7 @@ server {
     location / {
         root /var/www/$NAME;
         index index.html index.htm;
-        try_files \$uri \$uri/ =404;
+        try_files $uri $uri/ /index.html;
         
         # Cache static assets
         location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg)$ {

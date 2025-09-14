@@ -59,6 +59,7 @@ function loadDemoData() {
     ];
     
     incidents.forEach(incident => {
+        console.log("[app] Adding incident marker:", incident);
         const mySvgIcon = L.icon({
             iconUrl: 'assets/icons/bridge-water-solid-full.svg',
             iconSize: [38, 95], // size of the icon
@@ -66,10 +67,7 @@ function loadDemoData() {
             popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
         });
         // const marker = L.marker([incident.latitude, incident.longitude], { icon: mySvgIcon }).addTo(map);
-        const marker = L.marker([incident.latitude, incident.longitude], { icon: mySvgIcon, color: "#e74c3c" })
-        // const marker = L.circleMarker(incident.location, {
-        //     color: "#e74c3c", fillColor: "#e74c3c", fillOpacity: 0.8, radius: 8
-        // }).bindPopup(`<b>${incident.type}</b><br/>${incident.description}<br/>Severity: ${incident.severity}`);
+        const marker = L.marker(incident.location, { icon: mySvgIcon, color: "#e74c3c" }).bindPopup(`<b>${incident.type}</b><br/>${incident.description}<br/>Severity: ${incident.severity}`);
         incidentLayer.addLayer(marker);
     });
     
@@ -104,7 +102,7 @@ async function loadIncidents() {
         const data = await response.json();
         if (data.success) updateIncidentMarkers(data.data);
     } catch (error) {
-        console.error("Error loading incidents:", error);
+        console.error("[app] Error loading incidents:", error);
     }
 }
 
@@ -114,7 +112,7 @@ async function loadPersonnel() {
         const data = await response.json();
         if (data.success) updatePersonnelMarkers(data.data);
     } catch (error) {
-        console.error("Error loading personnel:", error);
+        console.error("[app] Error loading personnel:", error);
     }
 }
 
@@ -124,7 +122,7 @@ async function loadShelters() {
         const data = await response.json();
         if (data.success) updateShelterMarkers(data.data);
     } catch (error) {
-        console.error("Error loading shelters:", error);
+        console.error("[app] Error loading shelters:", error);
     }
 }
 
@@ -178,7 +176,7 @@ function loadResources() {
 
 document.addEventListener("DOMContentLoaded", function() {
     initMap();
-    console.log("Situational Awareness System initialized for Palo Alto, CA");
+    console.log("[app] Situational Awareness System initialized");
 });
 
 setInterval(() => {
