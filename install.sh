@@ -346,10 +346,10 @@ echo -e "${BLUE}Creating nginx configuration for system installation...${NC}"
 # Create nginx config for system installation (different from Docker version)
 # removed         try_files $uri $uri/ /index.html;
 # replaced with   try_files $uri $uri/ =404;
-cat > /tmp/situational-awareness-nginx.conf << 'NGINXCONF'
+cat > /tmp/situational-awareness-nginx.conf << NGINXCONF
 server {
     listen 80;
-    server_name $host;
+    server_name \$host;
     
     # Security headers
     add_header X-Frame-Options DENY always;
@@ -359,9 +359,9 @@ server {
     
     # Main application - serve static files
     location / {
-        root /var/www/$host;
+        root /var/www/$NAME;
         index index.html index.htm;
-        try_files $uri $uri/ =404;
+        try_files \$uri \$uri/ =404;
         
         # Cache static assets
         location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg)$ {
@@ -375,11 +375,11 @@ server {
     location /api {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Host pa-sitrep.local.mesh;
         
         # CORS headers for API
         add_header Access-Control-Allow-Origin * always;
@@ -387,7 +387,7 @@ server {
         add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
         
         # Handle OPTIONS requests for CORS
-        if ($request_method = 'OPTIONS') {
+        if (\$request_method = 'OPTIONS') {
             add_header Access-Control-Allow-Origin * always;
             add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
             add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
@@ -402,12 +402,12 @@ server {
     location /ws {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host pa-sitrep.local.mesh;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
         
         # WebSocket timeouts
         proxy_read_timeout 86400s;
