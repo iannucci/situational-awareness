@@ -51,11 +51,11 @@ function initMap() {
 
 function loadDemoData() {
     const incidents = [
-        { location: [37.45308016263716, -122.1276251638624], type: "Stage 1", severity: "Medium", description: "San Francisquito @ W. Bayshore" },
-        { location: [37.4510260206479, -122.16704514852604], type: "Stage 2", severity: "High", description: "San Francisquito @ Waverley" },
-        { location: [37.45652728272695, -122.15370626837039], type: "Stage 2", severity: "High", description: "San Francisquito @ Chaucer" },
-        { location: [37.44031131828777, -122.11335214734531], type: "Stage 2", severity: "High", description: "Matadero @ W. Bayshore" },
-        { location: [37.429437549693056, -122.10516541081658], type: "Stage 2", severity: "High", description: "Adobe @ E. Meadow" }
+        { location: [37.45308016263716, -122.1276251638624], type: "Stage 1", severity: "Medium", description: "San Francisquito @ W. Bayshore", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png" },
+        { location: [37.4510260206479, -122.16704514852604], type: "Stage 2", severity: "High", description: "San Francisquito @ Waverley", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png" },
+        { location: [37.45652728272695, -122.15370626837039], type: "Stage 2", severity: "High", description: "San Francisquito @ Chaucer", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png" },
+        { location: [37.44031131828777, -122.11335214734531], type: "Stage 2", severity: "High", description: "Matadero @ W. Bayshore", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png" },
+        { location: [37.429437549693056, -122.10516541081658], type: "Stage 2", severity: "High", description: "Adobe @ E. Meadow", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png" }
     ];
     
     incidents.forEach(incident => {
@@ -67,7 +67,7 @@ function loadDemoData() {
             popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
         });
         // const marker = L.marker([incident.latitude, incident.longitude], { icon: mySvgIcon }).addTo(map);
-        const marker = L.marker(incident.location, { icon: mySvgIcon, color: "#e74c3c" }).bindPopup(`<b>${incident.type}</b><br/>${incident.description}<br/>Severity: ${incident.severity}`);
+        const marker = L.marker(incident.location, { icon: mySvgIcon, color: "#e74c3c" }).bindPopup(`<b>${incident.type}</b><br/>${incident.description}<br/>Severity: ${incident.severity}<br/><a href="${incident.url}" target="_blank">Info</a>`);
         incidentLayer.addLayer(marker);
     });
     
