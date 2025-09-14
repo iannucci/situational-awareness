@@ -344,12 +344,7 @@ find "$WEB_ROOT" -type d -exec chmod 755 {} \;
 echo -e "${BLUE}Creating nginx configuration for system installation...${NC}"
 
 # Create nginx config for system installation (different from Docker version)
-
-
-# removed
-# proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-# proxy_set_header X-Forwarded-Proto \$scheme;
-# proxy_set_header X-Forwarded-Host pa-sitrep.local.mesh;
+# removed         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 cat > /tmp/situational-awareness-nginx.conf << NGINXCONF
 server {
     listen 80;
@@ -381,6 +376,9 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
+
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Host pa-sitrep.local.mesh;
         
         # CORS headers for API
         add_header Access-Control-Allow-Origin * always;
