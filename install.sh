@@ -359,7 +359,7 @@ server {
     location / {
         root /var/www/$NAME;
         index index.html index.htm;
-        try_files $uri $uri/ /index.html;
+        try_files \$uri \$uri/ /index.html;
         
         # Cache static assets
         location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg)$ {
