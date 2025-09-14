@@ -64,7 +64,7 @@ function loadDemoData() {
             iconUrl: 'assets/icons/bridge-water-solid-full.svg',
             iconSize: [38, 95], // size of the icon
             iconAnchor: [19, 47], // point of the icon which will correspond to marker's location
-            popupAnchor: [0, -50] // point from which the popup should open relative to the iconAnchor
+            popupAnchor: [0, -20] // point from which the popup should open relative to the iconAnchor
         });
         // const marker = L.marker([incident.latitude, incident.longitude], { icon: mySvgIcon }).addTo(map);
         const marker = L.marker(incident.location, { icon: mySvgIcon, color: "#e74c3c" }).bindPopup(`<b>${incident.type}</b><br/>${incident.description}<br/>Severity: ${incident.severity}<br/><img src="${incident.url}" width=${incident.width} height=${incident.height}>`);
