@@ -296,7 +296,7 @@ server.listen(config.port, () => {
   🔗 WebSocket: ws://localhost:${config.port}/ws
   📍 Service Area: Palo Alto, California
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚒 Ready for situational awareness operations
+🚒 [server] Ready for situational awareness operations
     `);
 });
 

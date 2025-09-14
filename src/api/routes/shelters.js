@@ -6,7 +6,7 @@ router.get("/available", async (req, res) => {
         const pool = req.app.get("db");
         
         if (!pool) {
-            console.warn("Database pool not available, using mock data");
+            console.warn("[shelters] Database pool not available, using mock data");
             return res.json({
                 success: true,
                 data: getMockShelters(),
@@ -36,7 +36,7 @@ router.get("/available", async (req, res) => {
                 timestamp: new Date().toISOString()
             });
         } catch (dbError) {
-            console.warn("Database query failed, using mock data:", dbError.message);
+            console.warn("[shelters] Database query failed, using mock data:", dbError.message);
             res.json({
                 success: true,
                 data: getMockShelters(),
@@ -46,7 +46,7 @@ router.get("/available", async (req, res) => {
             });
         }
     } catch (error) {
-        console.error("Error in shelters/available:", error);
+        console.error("[shelters] Error in shelters/available:", error);
         res.status(500).json({
             success: false,
             error: { code: "INTERNAL_ERROR", message: "Failed to retrieve shelter information" }

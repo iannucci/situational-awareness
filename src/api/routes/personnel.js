@@ -6,7 +6,7 @@ router.get("/status", async (req, res) => {
         const pool = req.app.get("db");
         
         if (!pool) {
-            console.warn("Database pool not available, using mock data");
+            console.warn("[personnel] Database pool not available, using mock data");
             return res.json({
                 success: true,
                 data: getMockPersonnel(),
@@ -44,7 +44,7 @@ router.get("/status", async (req, res) => {
                 timestamp: new Date().toISOString()
             });
         } catch (dbError) {
-            console.warn("Database query failed, using mock data:", dbError.message);
+            console.warn("[personnel] Database query failed, using mock data:", dbError.message);
             res.json({
                 success: true,
                 data: getMockPersonnel(),
@@ -54,7 +54,7 @@ router.get("/status", async (req, res) => {
             });
         }
     } catch (error) {
-        console.error("Error in personnel/status:", error);
+        console.error("[personnel] Error in personnel/status:", error);
         res.status(500).json({
             success: false,
             error: { code: "INTERNAL_ERROR", message: "Failed to retrieve personnel status" }
