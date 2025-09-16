@@ -9,20 +9,20 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Incident Types
 CREATE TABLE IF NOT EXISTS incident_types (
     id SERIAL PRIMARY KEY,
-    type_code VARCHAR(20) UNIQUE NOT NULL,
-    type_name VARCHAR(100) NOT NULL,
-    default_severity VARCHAR(20) DEFAULT 'Medium',
-    color_code VARCHAR(7) DEFAULT '#e74c3c',
+    type_code TEXT UNIQUE NOT NULL,
+    type_name TEXT NOT NULL,
+    default_severity TEXT DEFAULT 'Medium',
+    color_code TEXT DEFAULT '#e74c3c',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Tracked Asset Types  
 CREATE TABLE IF NOT EXISTS tracked_asset_types (
     id SERIAL UNIQUE NOT NULL,
-    type_code VARCHAR(20) PRIMARY KEY,
-    type_name VARCHAR(100) NOT NULL,
-    organization VARCHAR(50) NOT NULL,
-    icon VARCHAR(50) DEFAULT 'default.png',
+    type_code TEXT PRIMARY KEY,
+    type_name TEXT NOT NULL,
+    organization TEXT NOT NULL,
+    icon TEXT DEFAULT 'default.png',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -73,15 +73,15 @@ END $$;
 CREATE TABLE IF NOT EXISTS tracked_assets (
     id SERIAL,
     asset_id TEXT PRIMARY KEY,
-    type_code VARCHAR(50) NOT NULL,
-    tactical_call VARCHAR(20) NOT NULL,
+    type_code TEXT NOT NULL,
+    tactical_call TEXT NOT NULL,
     description TEXT NOT NULL,
     activity TEXT DEFAULT NULL,
     location GEOMETRY(POINT, 4326) NOT NULL,
     status TEXT NOT NULL DEFAULT 'Available' CHECK (
         status IN ('Available', 'Dispatched', 'En Route', 'Fixed', 'On Scene', 'Out of Service')
     ),
-    url VARCHAR(255) DEFAULT NULL,
+    url TEXT DEFAULT NULL,
     condition_type TEXT DEFAULT NULL,
     condition_severity TEXT DEFAULT 'None' CHECK (condition_severity IN ('None', 'Unknown', 'Low', 'Medium', 'High', 'Critical')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -122,9 +122,9 @@ END $$;
 -- Service boundaries table for Palo Alto
 CREATE TABLE IF NOT EXISTS service_boundaries (
     id SERIAL PRIMARY KEY,
-    boundary_name VARCHAR(100) NOT NULL,
-    boundary_type VARCHAR(50) NOT NULL,
-    jurisdiction VARCHAR(50) NOT NULL,
+    boundary_name TEXT NOT NULL,
+    boundary_type TEXT NOT NULL,
+    jurisdiction TEXT NOT NULL,
     boundary_geometry GEOMETRY(MULTIPOLYGON, 4326) NOT NULL,
     effective_date DATE NOT NULL DEFAULT CURRENT_DATE,
     description TEXT,
