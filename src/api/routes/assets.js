@@ -46,7 +46,7 @@ router.get("/status", async (req, res) => {
                 timestamp: new Date().toISOString()
             });
         } catch (dbError) {
-            console.warn("[personnel] Database query failed", dbError.message);
+            console.warn("[assets] Database query failed", dbError.message);
             res.json({
                 success: true,
                 data: getMockAssets(),
@@ -56,7 +56,7 @@ router.get("/status", async (req, res) => {
             });
         }
     } catch (error) {
-        console.error("[personnel] Error in asset/status:", error);
+        console.error("[assets] Error in asset/status:", error);
         res.status(500).json({
             success: false,
             error: { code: "INTERNAL_ERROR", message: "Failed to retrieve asset status" }

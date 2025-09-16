@@ -14,7 +14,7 @@ require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 console.log("🚨 [server] Situational Awareness API Starting...");
 
 // Route imports with error handling
-let incidentsRouter, personnelRouter, sheltersRouter;
+let incidentsRouter, assetsRouter;
 
 try {
     incidentsRouter = require("./routes/incidents");
@@ -26,12 +26,12 @@ try {
 }
 
 try {
-    personnelRouter = require("./routes/personnel");
-    console.log("✅ [server] Loaded personnel routes");
+    assetsRouter = require("./routes/assets");
+    console.log("✅ [server] Loaded assets routes");
 } catch (err) {
-    console.warn("⚠️ [server] personnel route not found, creating placeholder");
-    personnelRouter = express.Router();
-    personnelRouter.get("/status", (req, res) => res.json({ success: true, data: [], note: "Route not implemented" }));
+    console.warn("⚠️ [server] assets route not found, creating placeholder");
+    assetsRouter = express.Router();
+    assetsRouter.get("/status", (req, res) => res.json({ success: true, data: [], note: "Route not implemented" }));
 }
 
 try {
@@ -151,8 +151,7 @@ app.use((req, res, next) => {
 
 // API Routes
 app.use("/api/v1/incidents", incidentsRouter);
-app.use("/api/v1/personnel", personnelRouter);
-app.use("/api/v1/shelters", sheltersRouter);
+app.use("/api/v1/assets", assetsRouter);
 
 // Health check endpoint with more comprehensive checks
 app.get("/api/health", async (req, res) => {
@@ -198,8 +197,7 @@ app.get("/api/v1", (req, res) => {
         endpoints: {
             health: "/api/health",
             incidents: "/api/v1/incidents/active",
-            personnel: "/api/v1/personnel/status",
-            shelters: "/api/v1/shelters/available"
+            assets: "/api/v1/assets/status",
         },
         documentation: "https://github.com/iannucci/situational-awareness",
         timestamp: new Date().toISOString()
