@@ -16,19 +16,13 @@ CREATE TABLE IF NOT EXISTS incident_types (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-INSERT INTO incident_types (type_code, type_name, default_severity, color_code) VALUES
-('FIRE', 'Structure Fire', 'High', '#e74c3c'),
-('MEDICAL', 'Medical Emergency', 'Medium', '#f39c12'),
-('ACCIDENT', 'Traffic Accident', 'Medium', '#e67e22')
-ON CONFLICT (type_code) DO NOTHING;
-
 -- Tracked Asset Types  
 CREATE TABLE IF NOT EXISTS tracked_asset_types (
-    id SERIAL PRIMARY KEY,
-    type_code VARCHAR(20) UNIQUE NOT NULL,
+    id SERIAL UNIQUE NOT NULL,
+    type_code VARCHAR(20) PRIMARY KEY,
     type_name VARCHAR(100) NOT NULL,
-    department VARCHAR(50) NOT NULL,
-    color_code VARCHAR(7) DEFAULT '#3498db',
+    organization VARCHAR(50) NOT NULL,
+    icon VARCHAR(50) DEFAULT 'default.png',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -77,30 +71,39 @@ END $$;
 
 -- Tracked Assets Table
 CREATE TABLE IF NOT EXISTS tracked_assets (
-    id VARCHAR(50) PRIMARY KEY,
-    tracked_asset_type_id INTEGER NOT NULL,
-    call_sign VARCHAR(20) NOT NULL,
+    id SERIAL,
+    asset_id VARCHAR(50) PRIMARY KEY,
+    type_code VARCHAR(50) NOT NULL,
+    tactical_call VARCHAR(20) NOT NULL,
+    description VARCHAR(100) NOT NULL,
+    activity VARCHAR(100) DEFAULT NULL,
+    location GEOMETRY(POINT, 4326) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK (
-        status IN ('Available', 'Dispatched', 'En Route', 'On Scene', 'Out of Service')
+        status IN ('Available', 'Dispatched', 'En Route', "Fixed", 'On Scene', 'Out of Service')
     ),
-    station_name VARCHAR(100),
-    station_location GEOMETRY(POINT, 4326),
+    url VARCHAR(255) DEFAULT NULL,
+    condition_type VARCHAR(50) DEFAULT NULL,
+    condition_severity VARCHAR(20) DEFAULT 'None' CHECK (condition_severity IN ('None', 'Unknown', 'Low', 'Medium', 'High', 'Critical')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
-    CONSTRAINT fk_tracked_assets_type FOREIGN KEY (tracked_asset_type_id) REFERENCES tracked_asset_types(id)
+    CONSTRAINT fk_tracked_assets_type_code FOREIGN KEY (type_code) REFERENCES tracked_asset_types(type_code)
 );
 
 -- Tracked Asset Location Tracking
 CREATE TABLE IF NOT EXISTS tracked_asset_locations (
-    tracked_asset_id VARCHAR(50) NOT NULL,
+    id SERIAL,
+    asset_id VARCHAR(50) NOT NULL,
+    activity VARCHAR(100) DEFAULT NULL,
     location GEOMETRY(POINT, 4326) NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    activity VARCHAR(100),
+    status VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK (
+        status IN ('Available', 'Dispatched', 'En Route', "Fixed", 'On Scene', 'Out of Service')
+    ),
+    condition_type VARCHAR(50) DEFAULT NULL,
+    condition_severity VARCHAR(20) DEFAULT 'None' CHECK (condition_severity IN ('None', 'Unknown', 'Low', 'Medium', 'High', 'Critical')),
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
     PRIMARY KEY (tracked_asset_id, timestamp),
-    CONSTRAINT fk_tracked_asset_locations_unit FOREIGN KEY (tracked_asset_id) REFERENCES tracked_assets(id)
+    CONSTRAINT fk_tracked_asset_locations_asset_id FOREIGN KEY (asset_id) REFERENCES tracked_assets(asset_id)
 );
 
 -- Convert tracked_asset_locations to hypertable (with error handling)
@@ -115,24 +118,6 @@ BEGIN
     END;
 END $$;
 
--- Shelters
-CREATE TABLE IF NOT EXISTS shelters (
-    id VARCHAR(50) PRIMARY KEY,
-    facility_name VARCHAR(255) NOT NULL,
-    facility_type VARCHAR(50) NOT NULL,
-    location GEOMETRY(POINT, 4326) NOT NULL,
-    address VARCHAR(255) NOT NULL,
-    total_capacity INTEGER NOT NULL DEFAULT 0,
-    current_occupancy INTEGER NOT NULL DEFAULT 0,
-    available_capacity INTEGER GENERATED ALWAYS AS (total_capacity - current_occupancy) STORED,
-    has_kitchen BOOLEAN DEFAULT FALSE,
-    has_medical BOOLEAN DEFAULT FALSE,
-    wheelchair_accessible BOOLEAN DEFAULT FALSE,
-    contact_phone VARCHAR(20),
-    operational_status VARCHAR(20) DEFAULT 'Available',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
 
 -- Service boundaries table for Palo Alto
 CREATE TABLE IF NOT EXISTS service_boundaries (
@@ -160,9 +145,6 @@ CREATE INDEX IF NOT EXISTS idx_tracked_asset_locations_tracked_asset_id ON track
 CREATE INDEX IF NOT EXISTS idx_tracked_assets_status ON tracked_assets USING BTREE (status);
 CREATE INDEX IF NOT EXISTS idx_tracked_assets_station_location ON tracked_assets USING GIST (station_location);
 
-CREATE INDEX IF NOT EXISTS idx_shelters_location ON shelters USING GIST (location);
-CREATE INDEX IF NOT EXISTS idx_shelters_status ON shelters USING BTREE (operational_status);
-
 CREATE INDEX IF NOT EXISTS idx_service_boundaries_geometry ON service_boundaries USING GIST (boundary_geometry);
 
 -- Functions
@@ -180,7 +162,6 @@ BEGIN
     -- Drop triggers if they exist and recreate
     DROP TRIGGER IF EXISTS update_incidents_updated_at ON incidents;
     DROP TRIGGER IF EXISTS update_tracked_assets_updated_at ON tracked_assets;
-    DROP TRIGGER IF EXISTS update_shelters_updated_at ON shelters;
     
     CREATE TRIGGER update_incidents_updated_at 
         BEFORE UPDATE ON incidents 
@@ -190,9 +171,6 @@ BEGIN
         BEFORE UPDATE ON tracked_assets 
         FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
         
-    CREATE TRIGGER update_shelters_updated_at 
-        BEFORE UPDATE ON shelters 
-        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 END $$;
 
 -- Views
@@ -217,7 +195,6 @@ WHERE i.status IN ('Active', 'In Progress');
 DO $$
 BEGIN
     RAISE NOTICE '=======================================================';
-    RAISE NOTICE 'Situational Awareness Database Schema Setup Complete';
-    RAISE NOTICE 'Ready for emergency response operations';
+    RAISE NOTICE 'Situational Awareness Database schema setup complete';
     RAISE NOTICE '=======================================================';
 END $$;

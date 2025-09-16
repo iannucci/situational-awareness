@@ -30,17 +30,19 @@ class ScenarioDB:
 
 
 class trackedAssetCondition:
-    def __init__(self, type="unknown", severity="unknown"):
+    def __init__(self, type="Unknown", severity="Unknown"):
         self.type = type
-        self.severity = severity
+        self.severity = (
+            severity  # one of 'None', 'Unknown', 'Low', 'Medium', 'High', 'Critical'
+        )
 
 
 class trackedAssetType:
-    def __init__(self, type_code, type_name, organization, default_icon="default.png"):
+    def __init__(self, type_code, type_name, organization, icon="default.png"):
         self.type_code = type_code
         self.type_name = type_name
         self.organization = organization
-        self.default_icon = default_icon
+        self.icon = icon
 
     def insert(self, db):
         db_cursor = db.conn.cursor if db.conn else None
@@ -50,7 +52,7 @@ class trackedAssetType:
         try:
             db_cursor.execute(
                 """
-				INSERT INTO tracked_asset_types (type_code, type_name, organization, default_icon)
+				INSERT INTO tracked_asset_types (type_code, type_name, organization, icon)
 				VALUES (%s, %s, %s, %s)
 				ON CONFLICT (type_code) DO NOTHING;
 				""",
@@ -58,7 +60,7 @@ class trackedAssetType:
                     self.type_code,
                     self.type_name,
                     self.organization,
-                    self.default_icon,
+                    self.icon,
                 ),
             )
             db.conn.commit()
@@ -78,6 +80,8 @@ class trackedAsset:
         self.location = location
         self.url = url
         self.condition = trackedAssetCondition()
+        self.activity = ""
+        self.status = "Available"  # one of 'Available', 'Dispatched', 'En Route', "Fixed", 'On Scene', 'Out of Service'
 
     def insert(self, db):
         db_cursor = db.conn.cursor if db.conn else None
@@ -87,8 +91,8 @@ class trackedAsset:
         try:
             db_cursor.execute(
                 """
-				INSERT INTO tracked_assets (asset_id, type_code, tactical_call, description, location, url, condition)
-				VALUES (%s, %s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s)
+				INSERT INTO tracked_assets (asset_id, type_code, tactical_call, description, location, status, url, condition_type, condition_severity)
+				VALUES (%s, %s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s, %s)
 				ON CONFLICT (asset_id) DO NOTHING;
 				""",
                 (
@@ -98,6 +102,7 @@ class trackedAsset:
                     self.description,
                     self.location["lon"],
                     self.location["lat"],
+                    self.status,
                     self.url,
                     self.condition.type,
                     self.condition.severity,
@@ -108,8 +113,14 @@ class trackedAsset:
         except Exception as e:
             print(f"❌ Error inserting asset {self.description}: {e}")
 
-    def move(self, new_location):
-        self.location = new_location
+    def move(self, db, activity, location, status, condition):
+        self.activity = activity
+        self.location = location
+        self.status = status
+        self.condition = condition
+        print(
+            f"🔄 Moving asset: {self.asset_id} to {location} with activity {activity}"
+        )
         db_cursor = db.conn.cursor if db.conn else None
         if not db_cursor:
             print("❌ No database cursor available for move operation.")
@@ -118,11 +129,35 @@ class trackedAsset:
             db_cursor.execute(
                 """
 				UPDATE tracked_assets
-                SET location = ST_SetSRID(ST_MakePoint(%s, %s), 4326)
+				SET activity = %s, location = ST_SetSRID(ST_MakePoint(%s, %s), 4326), status = %s, condition_type = %s, condition_severity = %s, updated_at = NOW()
 				WHERE asset_id = %s;
 				""",
-                (self.location["lon"], self.location["lat"], self.asset_id),
+                (
+                    activity,
+                    location["lon"],
+                    location["lat"],
+                    status,
+                    condition.type,
+                    condition.severity,
+                    self.asset_id,
+                ),
             )
+            db_cursor.execute(
+                """
+				INSERT INTO tracked_asset_locations (asset_id, activity, location, status, condition_type, condition_severity)
+				VALUES (%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s);
+				""",
+                (
+                    self.asset_id,
+                    activity,
+                    location["lon"],
+                    location["lat"],
+                    status,
+                    condition.type,
+                    condition.severity,
+                ),
+            )
+
             db.conn.commit()
             print(f"✅ Moved asset: {self.description}")
         except Exception as e:
@@ -235,6 +270,12 @@ db = ScenarioDB(
 # WHERE NOT EXISTS (SELECT 1 FROM incidents WHERE address = '660 Stanford Shopping Center');
 
 
+# INSERT INTO incident_types (type_code, type_name, default_severity, color_code) VALUES
+# ('FIRE', 'Structure Fire', 'High', '#e74c3c'),
+# ('MEDICAL', 'Medical Emergency', 'Medium', '#f39c12'),
+# ('ACCIDENT', 'Traffic Accident', 'Medium', '#e67e22')
+# ON CONFLICT (type_code) DO NOTHING;
+
 asset_list = []
 type_codes_set = set()
 type_list = []
@@ -247,7 +288,7 @@ for asset in assets.get("assets", []):
             type_code=type_code,
             type_name=type_code.replace("_", " ").title(),
             organization="OES",
-            default_icon=f"{type_code.lower()}",  # .png, .svg, ...  Needs to be in the web/assets/icons directory
+            icon=f"{type_code.lower()}",  # .png, .svg, ...  Needs to be in the web/assets/icons directory
         )
         new_type.insert(db)
         type_list.append(new_type)
