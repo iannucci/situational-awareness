@@ -29,32 +29,32 @@ CREATE TABLE IF NOT EXISTS tracked_asset_types (
 -- Incidents Table
 CREATE TABLE IF NOT EXISTS incidents (
     id SERIAL PRIMARY KEY,
-    incident_number VARCHAR(50) UNIQUE NOT NULL,
+    incident_id VARCHAR(50) UNIQUE NOT NULL,
     incident_type_id INTEGER NOT NULL,
-    severity VARCHAR(20) NOT NULL CHECK (severity IN ('Low', 'Medium', 'High', 'Critical')),
+    severity TEXT NOT NULL CHECK (severity IN ('Low', 'Medium', 'High', 'Critical')),
     priority INTEGER NOT NULL DEFAULT 3 CHECK (priority BETWEEN 1 AND 5),
-    status VARCHAR(20) NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'In Progress', 'Resolved', 'Cancelled')),
+    status TEXT NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'In Progress', 'Resolved', 'Cancelled')),
     location GEOMETRY(POINT, 4326) NOT NULL,
-    address VARCHAR(255),
-    title VARCHAR(255) NOT NULL,
+    address TEXT,
+    title TEXT NOT NULL,
     description TEXT,
     reported_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     dispatched_at TIMESTAMPTZ,
-    created_by VARCHAR(50) NOT NULL DEFAULT 'SYSTEM',
+    created_by TEXT NOT NULL DEFAULT 'SYSTEM',
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
     CONSTRAINT fk_incidents_type FOREIGN KEY (incident_type_id) REFERENCES incident_types(id)
 );
 
--- Add incident_number generation function
-CREATE OR REPLACE FUNCTION generate_incident_number() RETURNS TEXT AS $$
+-- Add incident_id generation function
+CREATE OR REPLACE FUNCTION generate_incident_id() RETURNS TEXT AS $$
 BEGIN
-    RETURN 'INC-' || extract(year from now()) || '-' || lpad((SELECT COALESCE(MAX(CAST(SUBSTRING(incident_number FROM 10) AS INTEGER)), 0) + 1 FROM incidents WHERE incident_number LIKE 'INC-' || extract(year from now()) || '-%')::TEXT, 6, '0');
+    RETURN 'INC-' || extract(year from now()) || '-' || lpad((SELECT COALESCE(MAX(CAST(SUBSTRING(incident_id FROM 10) AS INTEGER)), 0) + 1 FROM incidents WHERE incident_id LIKE 'INC-' || extract(year from now()) || '-%')::TEXT, 6, '0');
 END;
 $$ LANGUAGE plpgsql;
 
--- Set default for incident_number
-ALTER TABLE incidents ALTER COLUMN incident_number SET DEFAULT generate_incident_number();
+-- Set default for incident_id
+ALTER TABLE incidents ALTER COLUMN incident_id SET DEFAULT generate_incident_id();
 
 -- Convert to TimescaleDB hypertable (with error handling)
 DO $$
@@ -78,8 +78,8 @@ CREATE TABLE IF NOT EXISTS tracked_assets (
     description VARCHAR(100) NOT NULL,
     activity VARCHAR(100) DEFAULT NULL,
     location GEOMETRY(POINT, 4326) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK (
-        status IN ('Available', 'Dispatched', 'En Route', "Fixed", 'On Scene', 'Out of Service')
+    status TEXT NOT NULL DEFAULT 'Available' CHECK (
+        status IN ('Available', 'Dispatched', 'En Route', 'Fixed', 'On Scene', 'Out of Service')
     ),
     url VARCHAR(255) DEFAULT NULL,
     condition_type VARCHAR(50) DEFAULT NULL,
@@ -96,13 +96,13 @@ CREATE TABLE IF NOT EXISTS tracked_asset_locations (
     activity VARCHAR(100) DEFAULT NULL,
     location GEOMETRY(POINT, 4326) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK (
-        status IN ('Available', 'Dispatched', 'En Route', "Fixed", 'On Scene', 'Out of Service')
+        status IN ('Available', 'Dispatched', 'En Route', 'Fixed', 'On Scene', 'Out of Service')
     ),
     condition_type VARCHAR(50) DEFAULT NULL,
     condition_severity VARCHAR(20) DEFAULT 'None' CHECK (condition_severity IN ('None', 'Unknown', 'Low', 'Medium', 'High', 'Critical')),
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
-    PRIMARY KEY (tracked_asset_id, timestamp),
+    PRIMARY KEY (asset_id, timestamp),
     CONSTRAINT fk_tracked_asset_locations_asset_id FOREIGN KEY (asset_id) REFERENCES tracked_assets(asset_id)
 );
 
@@ -177,7 +177,7 @@ END $$;
 CREATE OR REPLACE VIEW active_incidents_view AS
 SELECT 
     i.id,
-    i.incident_number,
+    i.incident_id,
     it.type_name as incident_type,
     i.severity,
     i.status,
