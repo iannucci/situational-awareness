@@ -46,55 +46,55 @@ function initMap() {
     personnelLayer = L.layerGroup().addTo(map);
     shelterLayer = L.layerGroup().addTo(map);
     
-    loadDemoData();
+    // loadDemoData();
 }
 
-function loadDemoData() {
-    const incidents = [
-        { location: [37.45308016263716, -122.1276251638624], type: "Stage 1", severity: "Medium", description: "San Francisquito @ W. Bayshore", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png", width: 300, height: 300 },
-        { location: [37.4510260206479, -122.16704514852604], type: "Stage 2", severity: "High", description: "San Francisquito @ Waverley", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png", width: 300, height: 300 },
-        { location: [37.45652728272695, -122.15370626837039], type: "Stage 2", severity: "High", description: "San Francisquito @ Chaucer", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png", width: 300, height: 300 },
-        { location: [37.44031131828777, -122.11335214734531], type: "Stage 2", severity: "High", description: "Matadero @ W. Bayshore", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png", width: 300, height: 300 },
-        { location: [37.429437549693056, -122.10516541081658], type: "Stage 2", severity: "High", description: "Adobe @ E. Meadow", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png", width: 300, height: 300 }
-    ];
+// function loadDemoData() {
+//     const incidents = [
+//         { location: [37.45308016263716, -122.1276251638624], type: "Stage 1", severity: "Medium", description: "San Francisquito @ W. Bayshore", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png", width: 300, height: 300 },
+//         { location: [37.4510260206479, -122.16704514852604], type: "Stage 2", severity: "High", description: "San Francisquito @ Waverley", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png", width: 300, height: 300 },
+//         { location: [37.45652728272695, -122.15370626837039], type: "Stage 2", severity: "High", description: "San Francisquito @ Chaucer", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png", width: 300, height: 300 },
+//         { location: [37.44031131828777, -122.11335214734531], type: "Stage 2", severity: "High", description: "Matadero @ W. Bayshore", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png", width: 300, height: 300 },
+//         { location: [37.429437549693056, -122.10516541081658], type: "Stage 2", severity: "High", description: "Adobe @ E. Meadow", url: "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png", width: 300, height: 300 }
+//     ];
     
-    incidents.forEach(incident => {
-        console.log("[app] Adding incident marker:", incident);
-        const mySvgIcon = L.icon({
-            iconUrl: 'assets/icons/bridge-water-solid-full.svg',
-            iconSize: [38, 95], // size of the icon
-            iconAnchor: [19, 47], // point of the icon which will correspond to marker's location
-            popupAnchor: [0, -20] // point from which the popup should open relative to the iconAnchor
-        });
-        // const marker = L.marker([incident.latitude, incident.longitude], { icon: mySvgIcon }).addTo(map);
-        const marker = L.marker(incident.location, { icon: mySvgIcon, color: "#e74c3c" }).bindPopup(`<b>${incident.type}</b><br/>${incident.description}<br/>Severity: ${incident.severity}<br/><img src="${incident.url}" width=${incident.width} height=${incident.height}>`);
-        incidentLayer.addLayer(marker);
-    });
+//     incidents.forEach(incident => {
+//         console.log("[app] Adding incident marker:", incident);
+//         const mySvgIcon = L.icon({
+//             iconUrl: 'assets/icons/bridge-water-solid-full.svg',
+//             iconSize: [38, 95], // size of the icon
+//             iconAnchor: [19, 47], // point of the icon which will correspond to marker's location
+//             popupAnchor: [0, -20] // point from which the popup should open relative to the iconAnchor
+//         });
+//         // const marker = L.marker([incident.latitude, incident.longitude], { icon: mySvgIcon }).addTo(map);
+//         const marker = L.marker(incident.location, { icon: mySvgIcon, color: "#e74c3c" }).bindPopup(`<b>${incident.type}</b><br/>${incident.description}<br/>Severity: ${incident.severity}<br/><img src="${incident.url}" width=${incident.width} height=${incident.height}>`);
+//         incidentLayer.addLayer(marker);
+//     });
     
-    const personnel = [
-        { location: [37.4614, -122.1576], id: "PAFD-E01", status: "Available", type: "Fire Engine" },
-        { location: [37.4349, -122.1540], id: "PAEMS-M01", status: "Dispatched", type: "Ambulance" }
-    ];
+//     const personnel = [
+//         { location: [37.4614, -122.1576], id: "PAFD-E01", status: "Available", type: "Fire Engine" },
+//         { location: [37.4349, -122.1540], id: "PAEMS-M01", status: "Dispatched", type: "Ambulance" }
+//     ];
     
-    personnel.forEach(unit => {
-        const marker = L.circleMarker(unit.location, {
-            color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
-        }).bindPopup(`<b>${unit.id}</b><br/>Type: ${unit.type}<br/>Status: ${unit.status}`);
-        personnelLayer.addLayer(marker);
-    });
+//     personnel.forEach(unit => {
+//         const marker = L.circleMarker(unit.location, {
+//             color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
+//         }).bindPopup(`<b>${unit.id}</b><br/>Type: ${unit.type}<br/>Status: ${unit.status}`);
+//         personnelLayer.addLayer(marker);
+//     });
     
-    const shelters = [
-        { location: [37.422469634374515, -122.11322286246323], name: "Mitchell Park Community Center", capacity: 150, available: 75 },
-        { location: [37.417331206600764, -122.10844229634911], name: "Cubberley Community Center", capacity: 200, available: 120 }
-    ];
+//     const shelters = [
+//         { location: [37.422469634374515, -122.11322286246323], name: "Mitchell Park Community Center", capacity: 150, available: 75 },
+//         { location: [37.417331206600764, -122.10844229634911], name: "Cubberley Community Center", capacity: 200, available: 120 }
+//     ];
     
-    shelters.forEach(shelter => {
-        const marker = L.circleMarker(shelter.location, {
-            color: "#27ae60", fillColor: "#27ae60", fillOpacity: 0.8, radius: 10
-        }).bindPopup(`<b>${shelter.name}</b><br/>Capacity: ${shelter.capacity}<br/>Available: ${shelter.available}`);
-        shelterLayer.addLayer(marker);
-    });
-}
+//     shelters.forEach(shelter => {
+//         const marker = L.circleMarker(shelter.location, {
+//             color: "#27ae60", fillColor: "#27ae60", fillOpacity: 0.8, radius: 10
+//         }).bindPopup(`<b>${shelter.name}</b><br/>Capacity: ${shelter.capacity}<br/>Available: ${shelter.available}`);
+//         shelterLayer.addLayer(marker);
+//     });
+// }
 
 async function loadIncidents() {
     try {

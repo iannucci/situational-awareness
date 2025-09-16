@@ -22,8 +22,8 @@ INSERT INTO incident_types (type_code, type_name, default_severity, color_code) 
 ('ACCIDENT', 'Traffic Accident', 'Medium', '#e67e22')
 ON CONFLICT (type_code) DO NOTHING;
 
--- Unit Types  
-CREATE TABLE IF NOT EXISTS unit_types (
+-- Tracked Asset Types  
+CREATE TABLE IF NOT EXISTS tracked_asset_types (
     id SERIAL PRIMARY KEY,
     type_code VARCHAR(20) UNIQUE NOT NULL,
     type_name VARCHAR(100) NOT NULL,
@@ -31,12 +31,6 @@ CREATE TABLE IF NOT EXISTS unit_types (
     color_code VARCHAR(7) DEFAULT '#3498db',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
-INSERT INTO unit_types (type_code, type_name, department, color_code) VALUES
-('FIRE_ENGINE', 'Fire Engine', 'PAFD', '#e74c3c'),
-('AMBULANCE', 'Ambulance', 'PAEMS', '#f39c12'),
-('POLICE_UNIT', 'Police Unit', 'PAPD', '#3498db')
-ON CONFLICT (type_code) DO NOTHING;
 
 -- Incidents Table
 CREATE TABLE IF NOT EXISTS incidents (
@@ -81,10 +75,10 @@ BEGIN
     END;
 END $$;
 
--- Units Table
-CREATE TABLE IF NOT EXISTS units (
+-- Tracked Assets Table
+CREATE TABLE IF NOT EXISTS tracked_assets (
     id VARCHAR(50) PRIMARY KEY,
-    unit_type_id INTEGER NOT NULL,
+    tracked_asset_type_id INTEGER NOT NULL,
     call_sign VARCHAR(20) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK (
         status IN ('Available', 'Dispatched', 'En Route', 'On Scene', 'Out of Service')
@@ -94,30 +88,30 @@ CREATE TABLE IF NOT EXISTS units (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     
-    CONSTRAINT fk_units_type FOREIGN KEY (unit_type_id) REFERENCES unit_types(id)
+    CONSTRAINT fk_tracked_assets_type FOREIGN KEY (tracked_asset_type_id) REFERENCES tracked_asset_types(id)
 );
 
--- Unit Location Tracking
-CREATE TABLE IF NOT EXISTS unit_locations (
-    unit_id VARCHAR(50) NOT NULL,
+-- Tracked Asset Location Tracking
+CREATE TABLE IF NOT EXISTS tracked_asset_locations (
+    tracked_asset_id VARCHAR(50) NOT NULL,
     location GEOMETRY(POINT, 4326) NOT NULL,
     status VARCHAR(20) NOT NULL,
     activity VARCHAR(100),
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
-    PRIMARY KEY (unit_id, timestamp),
-    CONSTRAINT fk_unit_locations_unit FOREIGN KEY (unit_id) REFERENCES units(id)
+    PRIMARY KEY (tracked_asset_id, timestamp),
+    CONSTRAINT fk_tracked_asset_locations_unit FOREIGN KEY (tracked_asset_id) REFERENCES tracked_assets(id)
 );
 
--- Convert unit_locations to hypertable (with error handling)
+-- Convert tracked_asset_locations to hypertable (with error handling)
 DO $$
 BEGIN
     BEGIN
-        PERFORM create_hypertable('unit_locations', 'timestamp', if_not_exists => TRUE);
-        RAISE NOTICE 'Created TimescaleDB hypertable for unit_locations';
+        PERFORM create_hypertable('tracked_asset_locations', 'timestamp', if_not_exists => TRUE);
+        RAISE NOTICE 'Created TimescaleDB hypertable for tracked_asset_locations';
     EXCEPTION 
         WHEN OTHERS THEN
-            RAISE NOTICE 'TimescaleDB not available or hypertable already exists for unit_locations: %', SQLERRM;
+            RAISE NOTICE 'TimescaleDB not available or hypertable already exists for tracked_asset_locations: %', SQLERRM;
     END;
 END $$;
 
@@ -159,12 +153,12 @@ CREATE INDEX IF NOT EXISTS idx_incidents_reported_at ON incidents USING BTREE (r
 CREATE INDEX IF NOT EXISTS idx_incidents_status ON incidents USING BTREE (status);
 CREATE INDEX IF NOT EXISTS idx_incidents_severity ON incidents USING BTREE (severity);
 
-CREATE INDEX IF NOT EXISTS idx_unit_locations_location ON unit_locations USING GIST (location);
-CREATE INDEX IF NOT EXISTS idx_unit_locations_timestamp ON unit_locations USING BTREE (timestamp);
-CREATE INDEX IF NOT EXISTS idx_unit_locations_unit_id ON unit_locations USING BTREE (unit_id);
+CREATE INDEX IF NOT EXISTS idx_tracked_asset_locations_location ON tracked_asset_locations USING GIST (location);
+CREATE INDEX IF NOT EXISTS idx_tracked_asset_locations_timestamp ON tracked_asset_locations USING BTREE (timestamp);
+CREATE INDEX IF NOT EXISTS idx_tracked_asset_locations_tracked_asset_id ON tracked_asset_locations USING BTREE (tracked_asset_id);
 
-CREATE INDEX IF NOT EXISTS idx_units_status ON units USING BTREE (status);
-CREATE INDEX IF NOT EXISTS idx_units_station_location ON units USING GIST (station_location);
+CREATE INDEX IF NOT EXISTS idx_tracked_assets_status ON tracked_assets USING BTREE (status);
+CREATE INDEX IF NOT EXISTS idx_tracked_assets_station_location ON tracked_assets USING GIST (station_location);
 
 CREATE INDEX IF NOT EXISTS idx_shelters_location ON shelters USING GIST (location);
 CREATE INDEX IF NOT EXISTS idx_shelters_status ON shelters USING BTREE (operational_status);
@@ -185,15 +179,15 @@ DO $$
 BEGIN
     -- Drop triggers if they exist and recreate
     DROP TRIGGER IF EXISTS update_incidents_updated_at ON incidents;
-    DROP TRIGGER IF EXISTS update_units_updated_at ON units;
+    DROP TRIGGER IF EXISTS update_tracked_assets_updated_at ON tracked_assets;
     DROP TRIGGER IF EXISTS update_shelters_updated_at ON shelters;
     
     CREATE TRIGGER update_incidents_updated_at 
         BEFORE UPDATE ON incidents 
         FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
         
-    CREATE TRIGGER update_units_updated_at 
-        BEFORE UPDATE ON units 
+    CREATE TRIGGER update_tracked_assets_updated_at 
+        BEFORE UPDATE ON tracked_assets 
         FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
         
     CREATE TRIGGER update_shelters_updated_at 
@@ -218,33 +212,6 @@ SELECT
 FROM incidents i
 JOIN incident_types it ON i.incident_type_id = it.id
 WHERE i.status IN ('Active', 'In Progress');
-
--- Sample data
-INSERT INTO units (id, unit_type_id, call_sign, station_name, station_location) VALUES 
-('PAFD-E01', 1, 'Engine 1', 'Station 1', ST_GeomFromText('POINT(-122.1576 37.4614)', 4326)),
-('PAEMS-M01', 2, 'Medic 1', 'Station 1', ST_GeomFromText('POINT(-122.1576 37.4614)', 4326)),
-('PAPD-01', 3, 'Unit 1', 'Police HQ', ST_GeomFromText('POINT(-122.1560 37.4419)', 4326))
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO shelters (id, facility_name, facility_type, location, address, total_capacity, has_kitchen, wheelchair_accessible, contact_phone) VALUES
-('SHELTER-01', 'Mitchell Park Community Center', 'Community Center', ST_GeomFromText('POINT(-122.1549 37.4282)', 4326), '3700 Middlefield Rd, Palo Alto, CA', 150, true, true, '(650) 463-4920'),
-('SHELTER-02', 'Cubberley Community Center', 'Community Center', ST_GeomFromText('POINT(-122.1345 37.4092)', 4326), '4000 Middlefield Rd, Palo Alto, CA', 200, true, true, '(650) 463-4950')
-ON CONFLICT (id) DO NOTHING;
-
--- Only insert incidents if the table is empty
-INSERT INTO incidents (incident_type_id, severity, location, address, title, description) 
-SELECT 1, 'High', ST_GeomFromText('POINT(-122.1630 37.4419)', 4326), '450 University Ave', 'Commercial Building Fire', 'Heavy smoke showing from 2-story building'
-WHERE NOT EXISTS (SELECT 1 FROM incidents WHERE address = '450 University Ave');
-
-INSERT INTO incidents (incident_type_id, severity, location, address, title, description) 
-SELECT 2, 'Medium', ST_GeomFromText('POINT(-122.1334 37.4505)', 4326), '660 Stanford Shopping Center', 'Medical Emergency', 'Person collapsed, conscious and breathing'
-WHERE NOT EXISTS (SELECT 1 FROM incidents WHERE address = '660 Stanford Shopping Center');
-
-INSERT INTO unit_locations (unit_id, location, status, activity) VALUES
-('PAFD-E01', ST_GeomFromText('POINT(-122.1576 37.4614)', 4326), 'Available', 'In Station'),
-('PAEMS-M01', ST_GeomFromText('POINT(-122.1630 37.4419)', 4326), 'Dispatched', 'En Route'),
-('PAPD-01', ST_GeomFromText('POINT(-122.1560 37.4419)', 4326), 'On Patrol', 'Routine Patrol')
-ON CONFLICT (unit_id, timestamp) DO NOTHING;
 
 -- Create completion notification
 DO $$

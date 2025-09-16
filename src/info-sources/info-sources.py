@@ -1,0 +1,274 @@
+# Situational Awareness Application
+
+# Copyright © 2025 by Bob Iannucci.  All rights reserved worldwide.
+
+import json
+import psycopg2 as db
+
+
+class ScenarioDB:
+    def __init__(self, dbname, user, host, password, port=5432):
+        self.dbname = dbname
+        self.user = user
+        self.host = host
+        self.password = password
+        self.port = port
+        try:
+            self.conn = db.connect(
+                f"dbname={dbname} user={user} host={host} password={password} port={port}"
+            )
+        except db.OperationalError as e:
+            print(f"❌ Unable to connect to the database: {e}")
+            self.conn = None
+        else:
+            print("✅ Database connection established")
+
+    def close(self):
+        if self.conn:
+            self.conn.close()
+            print("✅ Database connection closed")
+
+
+class trackedAssetCondition:
+    def __init__(self, type="unknown", severity="unknown"):
+        self.type = type
+        self.severity = severity
+
+
+class trackedAssetType:
+    def __init__(self, type_code, type_name, organization, default_icon="default.png"):
+        self.type_code = type_code
+        self.type_name = type_name
+        self.organization = organization
+        self.default_icon = default_icon
+
+    def insert(self, db):
+        db_cursor = db.conn.cursor if db.conn else None
+        if not db_cursor:
+            print("❌ No database cursor available for insert operation.")
+            return
+        try:
+            db_cursor.execute(
+                """
+				INSERT INTO tracked_asset_types (type_code, type_name, organization, default_icon)
+				VALUES (%s, %s, %s, %s)
+				ON CONFLICT (type_code) DO NOTHING;
+				""",
+                (
+                    self.type_code,
+                    self.type_name,
+                    self.organization,
+                    self.default_icon,
+                ),
+            )
+            db.conn.commit()
+            print(f"✅ Inserted asset type: {self.type_name}")
+        except Exception as e:
+            print(f"❌ Error inserting asset type {self.type_name}: {e}")
+
+
+class trackedAsset:
+    def __init__(
+        self, asset_id, type_code, tactical_call, description, location, url=""
+    ):
+        self.asset_id = asset_id
+        self.type_code = type_code
+        self.tactical_call = tactical_call
+        self.description = description
+        self.location = location
+        self.url = url
+        self.condition = trackedAssetCondition()
+
+    def insert(self, db):
+        db_cursor = db.conn.cursor if db.conn else None
+        if not db_cursor:
+            print("❌ No database cursor available for insert operation.")
+            return
+        try:
+            db_cursor.execute(
+                """
+				INSERT INTO tracked_assets (asset_id, type_code, tactical_call, description, location, url, condition)
+				VALUES (%s, %s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s)
+				ON CONFLICT (asset_id) DO NOTHING;
+				""",
+                (
+                    self.asset_id,
+                    self.type_code,
+                    self.tactical_call,
+                    self.description,
+                    self.location["lon"],
+                    self.location["lat"],
+                    self.url,
+                    self.condition.type,
+                    self.condition.severity,
+                ),
+            )
+            db.conn.commit()
+            print(f"✅ Inserted asset: {self.description}")
+        except Exception as e:
+            print(f"❌ Error inserting asset {self.description}: {e}")
+
+    def move(self, new_location):
+        self.location = new_location
+        db_cursor = db.conn.cursor if db.conn else None
+        if not db_cursor:
+            print("❌ No database cursor available for move operation.")
+            return
+        try:
+            db_cursor.execute(
+                """
+				UPDATE tracked_assets
+                SET location = ST_SetSRID(ST_MakePoint(%s, %s), 4326)
+				WHERE asset_id = %s;
+				""",
+                (self.location["lon"], self.location["lat"], self.asset_id),
+            )
+            db.conn.commit()
+            print(f"✅ Moved asset: {self.description}")
+        except Exception as e:
+            print(f"❌ Error moving asset {self.description}: {e}")
+
+
+class bridgeAsset(trackedAsset):
+    def __init__(self, location, description, url=""):
+        super().__init__("Bridge", location, description, url)
+
+
+config_file_path = "config.json"
+
+config = {}
+try:
+    with open(config_file_path, "r") as f:
+        config = json.load(f)
+    print("✅ Configuration data loaded successfully")
+except FileNotFoundError:
+    print(f"❌ Error: The file '{config_file_path}' was not found.")
+except json.JSONDecodeError:
+    print(
+        f"❌ Error: Could not decode JSON from '{config_file_path}'. Check file format."
+    )
+except Exception as e:
+    print(f"❌ An unexpected error occurred: {e} while loading configuration")
+
+
+assets_file_path = "assets.json"
+
+assets = {}
+try:
+    with open(assets_file_path, "r") as f:
+        assets = json.load(f)
+    print("✅ Fixed asset data loaded successfully")
+except FileNotFoundError:
+    print(f"❌ Error: The file '{assets_file_path}' was not found.")
+except json.JSONDecodeError:
+    print(
+        f"❌ Error: Could not decode JSON from '{assets_file_path}'. Check file format."
+    )
+except Exception as e:
+    print(f"❌ An unexpected error occurred: {e} while loading assets")
+
+dbconfig = config.get("database", None)
+if not dbconfig:
+    print("❌ Database configuration is missing in the config file.")
+
+db = ScenarioDB(
+    dbconfig.get("dbname"),
+    dbconfig.get("user"),
+    dbconfig.get("host"),
+    dbconfig.get("password"),
+    dbconfig.get("port"),
+)
+
+
+# -- Sample data
+
+# Change department to organization
+# Eliminate color_code
+# Add default_icon (name of a file in web/assets/icons)
+#
+# INSERT INTO tracked_asset_types (type_code, type_name, department, color_code) VALUES
+# ('FIRE_ENGINE', 'Fire Engine', 'PAFD'),
+# ('AMBULANCE', 'Ambulance', 'PAFD'),
+# ('POLICE_UNIT', 'Police Unit', 'PAPD'),
+# ('ESV', 'Emergency Services Volunteer', 'OES'),
+# ('BRIDGE', 'Bridge', 'Public Works'),
+# ('SHELTER', 'Shelter', 'OES'),
+# ('OPS', 'Operations Center', 'OES')
+# ON CONFLICT (type_code) DO NOTHING;
+
+
+# Change id to asset_id
+# Change tracked_asset_type_id to type_code
+# Change call_sign to tactical_call
+# Eliminate station_name
+# Eliminate station_location
+# Add description
+# Add url
+#
+# INSERT INTO tracked_assets (id, tracked_asset_type_id, call_sign, station_name, station_location) VALUES
+# ('EOC', 'OPS', 'EOC', 'City Hall', ST_GeomFromText('POINT(-122.1430 37.4447)', 4326)),
+# ('DOC', 'OPS', 'DOC', 'Cubberley Community Canter', ST_GeomFromText('POINT(-122.1477 37.4443)', 4326)),
+# ('SHELTER-01', 'Mitchell Park Community Center', 'Community Center', ST_GeomFromText('POINT(-122.1549 37.4282)', 4326), '3700 Middlefield Rd, Palo Alto, CA', 150, true, true, '(650) 463-4920'),
+# ('SHELTER-02', 'Cubberley Community Center', 'Community Center', ST_GeomFromText('POINT(-122.1345 37.4092)', 4326), '4000 Middlefield Rd, Palo Alto, CA', 200, true, true, '(650) 463-4950')
+# ('PAFD-E01', 1, 'Engine 1', 'Station 1', ST_GeomFromText('POINT(-122.1576 37.4614)', 4326)),
+# ('PAEMS-M01', 2, 'Medic 1', 'Station 1', ST_GeomFromText('POINT(-122.1576 37.4614)', 4326)),
+# ('PAPD-01', 3, 'Unit 1', 'Police HQ', ST_GeomFromText('POINT(-122.1560 37.4419)', 4326))
+# ON CONFLICT (id) DO NOTHING;
+
+# Change tracked_asset_id to asset_id
+#
+# INSERT INTO tracked_asset_locations (tracked_asset_id, location, status, activity) VALUES
+# ('PAFD-E01', ST_GeomFromText('POINT(-122.1576 37.4614)', 4326), 'Available', 'In Station'),
+# ('PAEMS-M01', ST_GeomFromText('POINT(-122.1630 37.4419)', 4326), 'Dispatched', 'En Route'),
+# ('PAPD-01', ST_GeomFromText('POINT(-122.1560 37.4419)', 4326), 'On Patrol', 'Routine Patrol')
+# ON CONFLICT (tracked_asset_id, timestamp) DO NOTHING;
+
+# Eliminate shelters table, merge into assets
+
+# -- Only insert incidents if the table is empty
+# INSERT INTO incidents (incident_type_id, severity, location, address, title, description)
+# SELECT 1, 'High', ST_GeomFromText('POINT(-122.1630 37.4419)', 4326), '450 University Ave', 'Commercial Building Fire', 'Heavy smoke showing from 2-story building'
+# WHERE NOT EXISTS (SELECT 1 FROM incidents WHERE address = '450 University Ave');
+
+# INSERT INTO incidents (incident_type_id, severity, location, address, title, description)
+# SELECT 2, 'Medium', ST_GeomFromText('POINT(-122.1334 37.4505)', 4326), '660 Stanford Shopping Center', 'Medical Emergency', 'Person collapsed, conscious and breathing'
+# WHERE NOT EXISTS (SELECT 1 FROM incidents WHERE address = '660 Stanford Shopping Center');
+
+
+asset_list = []
+type_codes_set = set()
+type_list = []
+
+for asset in assets.get("assets", []):
+
+    type_code = asset.get("type", "").upper()
+    if type_code not in type_codes_set:
+        new_type = trackedAssetType(
+            type_code=type_code,
+            type_name=type_code.replace("_", " ").title(),
+            organization="OES",
+            default_icon=f"{type_code.lower()}",  # .png, .svg, ...  Needs to be in the web/assets/icons directory
+        )
+        new_type.insert(db)
+        type_list.append(new_type)
+        type_codes_set.add(type_code)
+        print(f"🔖 Found asset type: {type_code}")
+
+    if type_code != "BRIDGE":
+        continue
+    location = asset.get("location", {})
+    lat = location.get("lat")
+    lon = location.get("lon")
+    if lat is None or lon is None:
+        print(f"❌ Invalid location data for bridge: {location}")
+        continue
+    b = bridgeAsset(
+        location={"lat": lat, "lon": lon},
+        description=asset.get("description", ""),
+        url=asset.get("url", ""),
+    )
+    asset_list.append(b)
+    b.insert(db)
+    print(f"✅ Loaded bridge: {b.description} at ({lat}, {lon})")
+
+db.close()

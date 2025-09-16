@@ -2,3 +2,9 @@
 src/api/config.js
 
 config.sh
+
+src/info-sources/config.json
+
+assets.json
+
+config.json
