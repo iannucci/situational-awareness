@@ -80,11 +80,11 @@ function updateIncidentMarkers(incidents) {
 
 function updateAssetMarkers(assets) {
     assetLayer.clearLayers();
-    assets.forEach(unit => {
-        if (unit.longitude && unit.latitude) {
-            const marker = L.circleMarker([unit.latitude, unit.longitude], {
+    assets.forEach(asset => {
+        if (asset.longitude && asset.latitude) {
+            const marker = L.circleMarker([asset.latitude, asset.longitude], {
                 color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
-            }).bindPopup(`<b>${unit.unit_id}</b><br/>Type: ${unit.unit_type}<br/>Status: ${unit.status}`);
+            }).bindPopup(`<b>${asset.asset_id}</b><br/>Type: ${asset.asset_type}<br/>Status: ${asset.status}`);
             assetLayer.addLayer(marker);
         }
     });

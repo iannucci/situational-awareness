@@ -159,8 +159,8 @@ $$ LANGUAGE plpgsql;
 DO $$
 BEGIN
     -- Drop triggers if they exist and recreate
-    DROP TRIGGER IF EXISTS update_incidents_updated_at ON incidents;
-    DROP TRIGGER IF EXISTS update_tracked_assets_updated_at ON tracked_assets;
+    -- DROP TRIGGER IF EXISTS update_incidents_updated_at ON incidents;
+    -- DROP TRIGGER IF EXISTS update_tracked_assets_updated_at ON tracked_assets;
     
     CREATE TRIGGER update_incidents_updated_at 
         BEFORE UPDATE ON incidents 
