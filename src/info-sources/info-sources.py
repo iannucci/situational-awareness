@@ -111,6 +111,23 @@ class trackedAsset:
                     self.condition.severity,
                 ),
             )
+
+            db_cursor.execute(
+                """
+				INSERT INTO tracked_asset_locations (asset_id, activity, location, status, condition_type, condition_severity)
+				VALUES (%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s);
+				""",
+                (
+                    self.asset_id,
+                    self.activity,
+                    location["lon"],
+                    location["lat"],
+                    self.status,
+                    self.condition.type,
+                    self.condition.severity,
+                ),
+            )
+
             database.conn.commit()
             print(f"✅ Inserted asset: {self.description}")
         except Exception as e:
