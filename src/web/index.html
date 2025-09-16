@@ -109,8 +109,7 @@
         }
         
         .incident { background: #e74c3c; }
-        .personnel { background: #3498db; }
-        .shelter { background: #27ae60; }
+        .assets { background: #3498db; }
     </style>
 </head>
 <body>
@@ -128,15 +127,9 @@
             </div>
             
             <div class="query-section">
-                <div class="section-title">👥 Personnel</div>
-                <button class="query-button status" onclick="loadPersonnel()">Personnel Status</button>
-                <button class="query-button status" onclick="loadUnits()">Unit Locations</button>
-            </div>
-            
-            <div class="query-section">
-                <div class="section-title">🏠 Resources</div>
-                <button class="query-button location" onclick="loadShelters()">Available Shelters</button>
-                <button class="query-button location" onclick="loadResources()">Resource Centers</button>
+                <div class="section-title">👥 Assets</div>
+                <button class="query-button status" onclick="loadAssets()">Asset Status</button>
+                <button class="query-button status" onclick="loadUnits()">Asset Locations</button>
             </div>
         </div>
         
@@ -150,12 +143,8 @@
                     <span>Active Incidents</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-icon personnel"></div>
-                    <span>Personnel</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-icon shelter"></div>
-                    <span>Shelters/Resources</span>
+                    <div class="legend-icon assets"></div>
+                    <span>Assets</span>
                 </div>
             </div>
         </div>

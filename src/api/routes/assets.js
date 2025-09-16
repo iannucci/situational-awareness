@@ -1,0 +1,71 @@
+const express = require("express");
+const router = express.Router();
+
+router.get("/status", async (req, res) => {
+    try {
+        const pool = req.app.get("db");
+        
+        if (!pool) {
+            console.warn("[assets] Database pool not available");
+            return res.json({
+                success: true,
+                data: getMockAssets(),
+                count: getMockAssets().length,
+                timestamp: new Date().toISOString(),
+                note: "Database not connected"
+            });
+        }
+
+        try {
+            const query = `
+                SELECT 
+                    ta.asset_id,
+                    ta.type_code,
+                    ta.tactical_call,
+                    ta.description,
+                    tat.type_name,
+                    ta.status,
+                    ST_X(ul.location) as longitude,
+                    ST_Y(ul.location) as latitude,
+                    ul.timestamp as last_update
+                FROM tracked_assets ta
+                JOIN tracked_asset_types tat ON ta.type_code = tat.type_code
+                LEFT JOIN LATERAL (
+                    SELECT location, timestamp 
+                    FROM tracked_asset_locations 
+                    WHERE asset_id = ta.asset_id
+                    ORDER BY timestamp DESC 
+                    LIMIT 1
+                ) ul ON true
+            `;
+            const result = await pool.query(query);
+            res.json({
+                success: true,
+                data: result.rows,
+                count: result.rows.length,
+                timestamp: new Date().toISOString()
+            });
+        } catch (dbError) {
+            console.warn("[personnel] Database query failed", dbError.message);
+            res.json({
+                success: true,
+                data: getMockAssets(),
+                count: getMockAssets().length,
+                timestamp: new Date().toISOString(),
+                note: "Database query failed"
+            });
+        }
+    } catch (error) {
+        console.error("[personnel] Error in asset/status:", error);
+        res.status(500).json({
+            success: false,
+            error: { code: "INTERNAL_ERROR", message: "Failed to retrieve asset status" }
+        });
+    }
+});
+
+function getMockAssets() {
+    return [];
+}
+
+module.exports = router;
