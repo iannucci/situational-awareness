@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS tracked_asset_types (
 -- Incidents Table
 CREATE TABLE IF NOT EXISTS incidents (
     id SERIAL PRIMARY KEY,
-    incident_id VARCHAR(50) UNIQUE NOT NULL,
+    incident_id TEXT UNIQUE NOT NULL,
     incident_type_id INTEGER NOT NULL,
     severity TEXT NOT NULL CHECK (severity IN ('Low', 'Medium', 'High', 'Critical')),
     priority INTEGER NOT NULL DEFAULT 3 CHECK (priority BETWEEN 1 AND 5),
@@ -72,18 +72,18 @@ END $$;
 -- Tracked Assets Table
 CREATE TABLE IF NOT EXISTS tracked_assets (
     id SERIAL,
-    asset_id VARCHAR(50) PRIMARY KEY,
+    asset_id TEXT PRIMARY KEY,
     type_code VARCHAR(50) NOT NULL,
     tactical_call VARCHAR(20) NOT NULL,
     description VARCHAR(100) NOT NULL,
-    activity VARCHAR(100) DEFAULT NULL,
+    activity TEXT DEFAULT NULL,
     location GEOMETRY(POINT, 4326) NOT NULL,
     status TEXT NOT NULL DEFAULT 'Available' CHECK (
         status IN ('Available', 'Dispatched', 'En Route', 'Fixed', 'On Scene', 'Out of Service')
     ),
     url VARCHAR(255) DEFAULT NULL,
-    condition_type VARCHAR(50) DEFAULT NULL,
-    condition_severity VARCHAR(20) DEFAULT 'None' CHECK (condition_severity IN ('None', 'Unknown', 'Low', 'Medium', 'High', 'Critical')),
+    condition_type TEXT DEFAULT NULL,
+    condition_severity TEXT DEFAULT 'None' CHECK (condition_severity IN ('None', 'Unknown', 'Low', 'Medium', 'High', 'Critical')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT fk_tracked_assets_type_code FOREIGN KEY (type_code) REFERENCES tracked_asset_types(type_code)
@@ -92,14 +92,14 @@ CREATE TABLE IF NOT EXISTS tracked_assets (
 -- Tracked Asset Location Tracking
 CREATE TABLE IF NOT EXISTS tracked_asset_locations (
     id SERIAL,
-    asset_id VARCHAR(50) NOT NULL,
-    activity VARCHAR(100) DEFAULT NULL,
+    asset_id TEXT NOT NULL,
+    activity TEXT DEFAULT NULL,
     location GEOMETRY(POINT, 4326) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK (
+    status TEXT NOT NULL DEFAULT 'Available' CHECK (
         status IN ('Available', 'Dispatched', 'En Route', 'Fixed', 'On Scene', 'Out of Service')
     ),
-    condition_type VARCHAR(50) DEFAULT NULL,
-    condition_severity VARCHAR(20) DEFAULT 'None' CHECK (condition_severity IN ('None', 'Unknown', 'Low', 'Medium', 'High', 'Critical')),
+    condition_type TEXT DEFAULT NULL,
+    condition_severity TEXT DEFAULT 'None' CHECK (condition_severity IN ('None', 'Unknown', 'Low', 'Medium', 'High', 'Critical')),
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
     PRIMARY KEY (asset_id, timestamp),
@@ -140,10 +140,9 @@ CREATE INDEX IF NOT EXISTS idx_incidents_severity ON incidents USING BTREE (seve
 
 CREATE INDEX IF NOT EXISTS idx_tracked_asset_locations_location ON tracked_asset_locations USING GIST (location);
 CREATE INDEX IF NOT EXISTS idx_tracked_asset_locations_timestamp ON tracked_asset_locations USING BTREE (timestamp);
-CREATE INDEX IF NOT EXISTS idx_tracked_asset_locations_tracked_asset_id ON tracked_asset_locations USING BTREE (tracked_asset_id);
+CREATE INDEX IF NOT EXISTS idx_tracked_asset_locations_asset_id ON tracked_asset_locations USING BTREE (asset_id);
 
 CREATE INDEX IF NOT EXISTS idx_tracked_assets_status ON tracked_assets USING BTREE (status);
-CREATE INDEX IF NOT EXISTS idx_tracked_assets_station_location ON tracked_assets USING GIST (station_location);
 
 CREATE INDEX IF NOT EXISTS idx_service_boundaries_geometry ON service_boundaries USING GIST (boundary_geometry);
 
