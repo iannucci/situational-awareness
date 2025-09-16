@@ -202,7 +202,7 @@ fi
 
 # Create database and user
 echo -e "${BLUE}Creating database...${NC}"
-sudo -u postgres psql -c "DROP database IF EXISTS $DB_NAME;" || true
+sudo -u postgres psql -c "DROP database IF EXISTS $DB_NAME WITH (FORCE);" || true
 sudo -u postgres createdb $DB_NAME || echo -e "${YELLOW}Database may already exist${NC}"
 sudo -u postgres psql -c "DROP OWNED BY $DB_USER;" || true
 
