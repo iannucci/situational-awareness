@@ -3,7 +3,7 @@
 # Copyright © 2025 by Bob Iannucci.  All rights reserved worldwide.
 
 import json
-import psycopg2 as db
+import psycopg2
 
 
 class ScenarioDB:
@@ -13,11 +13,14 @@ class ScenarioDB:
         self.host = host
         self.password = password
         self.port = port
+        self.conn = None
+        self.cursor = None
         try:
-            self.conn = db.connect(
+            self.conn = psycopg2.connect(
                 f"dbname={dbname} user={user} host={host} password={password} port={port}"
             )
-        except db.OperationalError as e:
+            self.cursor = self.conn.cursor()
+        except psycopg2.OperationalError as e:
             print(f"❌ Unable to connect to the database: {e}")
             self.conn = None
         else:
@@ -44,8 +47,8 @@ class trackedAssetType:
         self.organization = organization
         self.icon = icon
 
-    def insert(self, db):
-        db_cursor = db.conn.cursor if db.conn else None
+    def insert(self, database):
+        db_cursor = database.cursor
         if not db_cursor:
             print("❌ No database cursor available for insert operation.")
             return
@@ -63,7 +66,7 @@ class trackedAssetType:
                     self.icon,
                 ),
             )
-            db.conn.commit()
+            database.conn.commit()
             print(f"✅ Inserted asset type: {self.type_name}")
         except Exception as e:
             print(f"❌ Error inserting asset type {self.type_name}: {e}")
@@ -83,8 +86,8 @@ class trackedAsset:
         self.activity = ""
         self.status = "Available"  # one of 'Available', 'Dispatched', 'En Route', "Fixed", 'On Scene', 'Out of Service'
 
-    def insert(self, db):
-        db_cursor = db.conn.cursor if db.conn else None
+    def insert(self, database):
+        db_cursor = database.cursor
         if not db_cursor:
             print("❌ No database cursor available for insert operation.")
             return
@@ -108,12 +111,12 @@ class trackedAsset:
                     self.condition.severity,
                 ),
             )
-            db.conn.commit()
+            database.conn.commit()
             print(f"✅ Inserted asset: {self.description}")
         except Exception as e:
             print(f"❌ Error inserting asset {self.description}: {e}")
 
-    def move(self, db, activity, location, status, condition):
+    def move(self, database, activity, location, status, condition):
         self.activity = activity
         self.location = location
         self.status = status
@@ -121,7 +124,7 @@ class trackedAsset:
         print(
             f"🔄 Moving asset: {self.asset_id} to {location} with activity {activity}"
         )
-        db_cursor = db.conn.cursor if db.conn else None
+        db_cursor = database.cursor
         if not db_cursor:
             print("❌ No database cursor available for move operation.")
             return
@@ -158,15 +161,15 @@ class trackedAsset:
                 ),
             )
 
-            db.conn.commit()
+            database.conn.commit()
             print(f"✅ Moved asset: {self.description}")
         except Exception as e:
             print(f"❌ Error moving asset {self.description}: {e}")
 
 
 class bridgeAsset(trackedAsset):
-    def __init__(self, location, description, url=""):
-        super().__init__("Bridge", location, description, url)
+    def __init__(self, asset_id, tactical_call, description, location, url=""):
+        super().__init__(asset_id, "BRIDGE", tactical_call, description, location, url)
 
 
 config_file_path = "config.json"
@@ -206,7 +209,7 @@ dbconfig = config.get("database", None)
 if not dbconfig:
     print("❌ Database configuration is missing in the config file.")
 
-db = ScenarioDB(
+database = ScenarioDB(
     dbconfig.get("dbname"),
     dbconfig.get("user"),
     dbconfig.get("host"),
@@ -290,7 +293,7 @@ for asset in assets.get("assets", []):
             organization="OES",
             icon=f"{type_code.lower()}",  # .png, .svg, ...  Needs to be in the web/assets/icons directory
         )
-        new_type.insert(db)
+        new_type.insert(database)
         type_list.append(new_type)
         type_codes_set.add(type_code)
         print(f"🔖 Found asset type: {type_code}")
@@ -300,16 +303,20 @@ for asset in assets.get("assets", []):
     location = asset.get("location", {})
     lat = location.get("lat")
     lon = location.get("lon")
+    asset_id = asset.get("asset_id", f"BRIDGE-{lat}-{lon}")
     if lat is None or lon is None:
         print(f"❌ Invalid location data for bridge: {location}")
         continue
-    b = bridgeAsset(
-        location={"lat": lat, "lon": lon},
+    # asset_id, tactical_call, description, location, url="")
+    bridge = bridgeAsset(
+        asset_id,
+        asset_id,
         description=asset.get("description", ""),
+        location={"lat": lat, "lon": lon},
         url=asset.get("url", ""),
     )
-    asset_list.append(b)
-    b.insert(db)
-    print(f"✅ Loaded bridge: {b.description} at ({lat}, {lon})")
+    asset_list.append(bridge)
+    bridge.insert(database)
+    print(f"✅ Loaded bridge: {bridge.description} at ({lat}, {lon})")
 
-db.close()
+database.close()

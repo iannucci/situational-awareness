@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS tracked_assets (
     asset_id TEXT PRIMARY KEY,
     type_code VARCHAR(50) NOT NULL,
     tactical_call VARCHAR(20) NOT NULL,
-    description VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
     activity TEXT DEFAULT NULL,
     location GEOMETRY(POINT, 4326) NOT NULL,
     status TEXT NOT NULL DEFAULT 'Available' CHECK (
