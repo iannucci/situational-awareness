@@ -1,6 +1,6 @@
 {
 	"database": {
-		"host": "xxx",
+		"host": "fqdn",
 		"port": 5432,
 		"user": "xxx",
 		"dbname": "xxx",
