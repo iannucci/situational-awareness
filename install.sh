@@ -492,6 +492,31 @@ fi
 # Clean up temporary file
 rm -f /tmp/situational-awareness-nginx.conf
 
+sudo mkdir -p /tmp/meshtastic-client
+cat > "/tmp/meshtastic-client.service" << MESHTASTIC
+    [Unit]
+    Description=Meshtastic Client Service
+    After=network.target
+
+    [Service]
+    User=root
+    WorkingDirectory=/tmp/meshtastic-client
+    ExecStart=/usr/bin/python3 /opt/situational-awareness/src/info-sources/meshtastic-client.py --config $CFG_DIR/config.json
+    Restart=on-failure
+    StandardOutput=syslog
+    StandardError=syslog
+
+    [Install]
+    WantedBy=multi-user.target
+MESHTASTIC
+
+sudo cp -r /tmp/meshtastic-client.service /etc/systemd/system/meshtastic-client.service
+rm -f /tmp/meshtastic-client.service
+sudo chmod 644 /etc/systemd/system/meshtastic-client.service
+sudo systemctl daemon-reload
+sudo systemctl enable meshtastic-client.service
+sudo systemctl start meshtastic-client.service
+
 # Set up python venv and install requirements
 echo -e "${BLUE}Setting up Python virtual environment...${NC}"
 popd # Restore installation directory
