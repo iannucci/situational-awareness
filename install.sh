@@ -90,7 +90,7 @@ sudo mkdir -p "$ETC_DIR"
 echo "Copying project files"
 sudo cp -r database "$APP_DIR/"
 sudo cp -r src "$APP_DIR/"
-# sudo cp nginx.conf "$ETC_DIR/"
+sudo cp -r config-example.json "$ETC_DIR/"
 
 # FIXED: Get the absolute path of the project directory
 # PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -529,7 +529,6 @@ echo "DB_PASSWORD=$DB_PASSWORD" > $ETC_DIR/$NAME.conf
 echo "PROJECT_ROOT=$APP_DIR" >> $ETC_DIR/$NAME.conf
 echo "POSTGRES_VERSION=$PG_VERSION" >> $ETC_DIR/$NAME.conf
 chmod 600 $ETC_DIR/$NAME.conf
-cp config-example.json $ETC_DIR/config-example.json
 
 # Wait for services to fully start
 sleep 5
