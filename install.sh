@@ -83,9 +83,6 @@ if [ "$DB_PASSWORD" == "'none'" ]; then
     exit 1
 fi
 
-# Save the current directory without switching to another directory
-pushd -n
-
 echo "Creating app dir at $APP_DIR"
 sudo mkdir -p "$APP_DIR"
 sudo mkdir -p "$ETC_DIR"
@@ -246,7 +243,7 @@ if command -v timescaledb-tune &> /dev/null; then
 fi
 
 echo -e "${BLUE}Installing Node.js dependencies...${NC}"
-cd "$APP_DIR/src/api"
+pushd "$APP_DIR/src/api"
 
 if [[ ! -f "package.json" ]]; then
     echo -e "${RED}Error: package.json not found in $APP_DIR/src/api/package.json${NC}"
