@@ -529,9 +529,10 @@ echo "DB_PASSWORD=$DB_PASSWORD" > $ETC_DIR/$NAME.conf
 echo "PROJECT_ROOT=$APP_DIR" >> $ETC_DIR/$NAME.conf
 echo "POSTGRES_VERSION=$PG_VERSION" >> $ETC_DIR/$NAME.conf
 chmod 600 $ETC_DIR/$NAME.conf
+cp config-example.json $ETC_DIR/config-example.json
 
 # Wait for services to fully start
-sleep 10
+sleep 5
 
 # Verify services are running
 echo -e "${BLUE}Verifying services...${NC}"

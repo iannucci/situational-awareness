@@ -2,6 +2,8 @@
 
 # Copyright © 2025 by Bob Iannucci.  All rights reserved worldwide.
 
+# This program is used to set up a scenario.  It is meant to be run on a client computer, not necessarily the server.
+
 import json
 import psycopg2
 
