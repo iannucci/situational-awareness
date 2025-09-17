@@ -497,6 +497,7 @@ echo -e "${BLUE}Creating meshtastic-client.sh...${NC}"
 
 cat > "$APP_DIR/src/info-sources/meshtastic-client.sh" << MESHTASTICCLIENTSH
 #!/bin/bash
+
 mkdir -p /root/meshtastic-client
 cd /root/meshtastic-client
 python3 -m venv base
@@ -516,7 +517,7 @@ After=network.target
 
 [Service]
 User=root
-WorkingDirectory=/root/meshtastic-client
+WorkingDirectory=/root
 ExecStart=/usr/bin/python3 $APP_DIR/src/info-sources/meshtastic-client.sh --config $CFG_DIR/config.json
 Restart=on-failure
 StandardOutput=syslog
