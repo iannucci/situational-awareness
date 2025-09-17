@@ -498,16 +498,20 @@ echo -e "${BLUE}Creating meshtastic-client.sh...${NC}"
 cat > "$APP_DIR/src/info-sources/meshtastic-client.sh" << MESHTASTICCLIENTSH
 #!/bin/bash
 
-mkdir -p /root/meshtastic-client
+cd /root/meshtastic-client
+source base/bin/activate
+python3 $APP_DIR/src/info-sources/meshtastic-client.py --config $ETC_DIR/config.json
+MESHTASTICCLIENTSH
+
+sudo chmod a+x "$APP_DIR/src/info-sources/meshtastic-client.sh"
+
+echo -e "${BLUE}Setting up meshtastic-client venv...${NC}"
+sudo mkdir -p /root/meshtastic-client
 cd /root/meshtastic-client
 python3 -m venv base
 source base/bin/activate
 pip3 install --upgrade pip
 pip3 install -r "$APP_DIR/requirements.txt"
-python3 $APP_DIR/src/info-sources/meshtastic-client.py --config $ETC_DIR/config.json
-MESHTASTICCLIENTSH
-
-sudo chmod a+x "$APP_DIR/src/info-sources/meshtastic-client.sh"
 
 echo -e "${BLUE}Creating meshtastic-client configuration...${NC}"
 cat > "/tmp/meshtastic-client.service" << MESHTASTICCFG
