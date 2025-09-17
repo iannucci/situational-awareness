@@ -1,0 +1,58 @@
+{
+	"event_type": "DRILL",
+	"event_start": "2024-10-01T09:00:00-07:00",
+	"event_end": "2024-10-01T12:00:00-07:00",
+	"event_description": "Emergency Preparedness Drill",
+	"assets": [
+		{
+			"type": "BRIDGE",
+			"asset_id": "San Francisquito W Bayshore",
+			"location": {
+				"lat": 37.45308016263716,
+				"lon": -122.1276251638624
+			},
+			"description": "San Francisquito @ W. Bayshore", 
+			"url": "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png"
+		},
+		{ 
+			"type": "BRIDGE",
+			"asset_id": "San Francisquito Waverley",
+			"location": {
+				"lat": 37.4510260206479,
+				"lon": -122.16704514852604
+			}, 
+			"description": "San Francisquito @ Waverley", 
+			"url": "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png"
+		},
+		{ 
+			"type": "BRIDGE",
+			"asset_id": "San Francisquito Chaucer",
+			"location": {
+				"lat": 37.45652728272695,
+				"lon": -122.15370626837039
+			}, 
+			"description": "San Francisquito @ Chaucer", 
+			"url": "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png"
+		},
+		{ 
+			"type": "BRIDGE",
+			"asset_id": "Matadero W Bayshore",
+			"location": {
+				"lat": 37.44031131828777,
+				"lon": -122.11335214734531
+			}, 
+			"description": "Matadero @ W. Bayshore",
+			"url": "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png"
+		},
+		{ 
+			"type": "BRIDGE",
+			"asset_id": "Adobe E Meadow",
+			"location": {
+				"lat": 37.429437549693056,
+				"lon": -122.10516541081658
+			}, 
+			"description": "Adobe @ E. Meadow", 
+			"url": "https://cc-webfile.cityofpaloalto.org/creekmonitor/storm2.png"
+		}
+	]
+}

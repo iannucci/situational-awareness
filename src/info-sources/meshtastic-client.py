@@ -247,7 +247,7 @@ def build_logger(level: str):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="mattermost-newsfeeds")
+    ap = argparse.ArgumentParser(description="meshtastic-client")
     ap.add_argument(
         "--config",
         default=DEFAULT_CFG,

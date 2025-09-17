@@ -2,10 +2,12 @@
 
 # Copyright © 2025 by Bob Iannucci.  All rights reserved worldwide.
 
-# This program is used to set up a scenario.  It is meant to be run on a client computer, not necessarily the server.
+# This program is used to set up a scenario.
 
 import json
 import psycopg2
+import os
+import argparse
 
 
 class ScenarioDB:
@@ -191,36 +193,54 @@ class bridgeAsset(trackedAsset):
         super().__init__(asset_id, "BRIDGE", tactical_call, description, location, url)
 
 
-config_file_path = "config.json"
+DEFAULT_CFG = "/etc/situational-awareness/config.json"
+DEFAULT_ASSETS = "/etc/situational-awareness/assets.json"
+
+
+def find_config_path(cli_path: str):
+    cwd_cfg = os.path.abspath(os.path.join(os.getcwd(), "config.json"))
+    if os.path.exists(cwd_cfg):
+        return cwd_cfg
+    return cli_path
+
+
+ap = argparse.ArgumentParser(description="scenario-setup")
+ap.add_argument(
+    "--config",
+    default=DEFAULT_CFG,
+    help=f"Path to config file (default: {DEFAULT_CFG})",
+)
+ap.add_argument(
+    "--assets",
+    default=DEFAULT_ASSETS,
+    help=f"Path to assets file (default: {DEFAULT_ASSETS})",
+)
+args = ap.parse_args()
 
 config = {}
 try:
-    with open(config_file_path, "r") as f:
+    config_path = find_config_path(args.config)
+    with open(config_path, "r") as f:
         config = json.load(f)
     print("✅ Configuration data loaded successfully")
 except FileNotFoundError:
-    print(f"❌ Error: The file '{config_file_path}' was not found.")
+    print(f"❌ Error: The file '{config_path}' was not found.")
 except json.JSONDecodeError:
-    print(
-        f"❌ Error: Could not decode JSON from '{config_file_path}'. Check file format."
-    )
+    print(f"❌ Error: Could not decode JSON from '{config_path}'. Check file format.")
 except Exception as e:
     print(f"❌ An unexpected error occurred: {e} while loading configuration")
 
 
-assets_file_path = "assets.json"
-
 assets = {}
 try:
-    with open(assets_file_path, "r") as f:
+    assets_path = find_config_path(args.config)
+    with open(assets_path, "r") as f:
         assets = json.load(f)
     print("✅ Fixed asset data loaded successfully")
 except FileNotFoundError:
-    print(f"❌ Error: The file '{assets_file_path}' was not found.")
+    print(f"❌ Error: The file '{assets_path}' was not found.")
 except json.JSONDecodeError:
-    print(
-        f"❌ Error: Could not decode JSON from '{assets_file_path}'. Check file format."
-    )
+    print(f"❌ Error: Could not decode JSON from '{assets_path}'. Check file format.")
 except Exception as e:
     print(f"❌ An unexpected error occurred: {e} while loading assets")
 
