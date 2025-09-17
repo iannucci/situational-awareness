@@ -64,6 +64,7 @@ async function loadAssets() {
     try {
         const response = await fetch(`${API_BASE}/assets/status`);
         const data = await response.json();
+        console.log(data);
         if (data.success) updateAssetMarkers(data.data);
     } catch (error) {
         console.error("[app] Error loading assets:", error);
@@ -90,8 +91,9 @@ function updateAssetMarkers(assets) {
             var marker;
             switch (asset.type_code) {
                 case 'BRIDGE':
+                    icon_file = asset.icon + '.svg';
                     marker = L.marker([asset.latitude, asset.longitude], { 
-                        icon: asset.icon + '.svg', color: "#e74c3c" 
+                        icon: icon_file, color: "#e74c3c" 
                     }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><a href="${asset.url}" target="_blank">Info</a>`);
                     break; 
                 default:

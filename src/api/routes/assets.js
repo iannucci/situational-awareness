@@ -20,7 +20,7 @@ router.get("/status", async (req, res) => {
             const query = `
                 SELECT 
                     ta.asset_id as asset_id,
-                    ta.type_code ,
+                    ta.type_code as type_code,
                     ta.tactical_call as tactical_call,
                     ta.description as description,
                     ta.url as url,
