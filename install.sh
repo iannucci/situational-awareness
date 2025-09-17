@@ -250,7 +250,7 @@ if [[ ! -f "package.json" ]]; then
     exit 1
 fi
 
-npm install --production
+npm install --omit=dev
 if [[ $? -ne 0 ]]; then
     echo -e "${RED}Error: npm install failed${NC}"
     exit 1
