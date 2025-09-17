@@ -497,7 +497,7 @@ echo -e "${BLUE}Creating meshtastic-client.sh...${NC}"
 
 cat > "$APP_DIR/src/info-sources/meshtastic-client.sh" << MESHTASTICCLIENTSH
 #!/bin/bash
-sudo mkdir -p /root/meshtastic-client
+mkdir -p /root/meshtastic-client
 cd /root/meshtastic-client
 python3 -m venv base
 source base/bin/activate
