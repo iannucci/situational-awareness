@@ -91,9 +91,14 @@ function updateAssetMarkers(assets) {
             var marker;
             switch (asset.type_code) {
                 case 'BRIDGE':
-                    icon_file = asset.icon + '.svg';
+                    const svgIcon = L.icon({
+                        iconUrl: 'assets/icons/' + asset.icon + '.svg',
+                        iconSize: [38, 95], // size of the icon
+                        iconAnchor: [22, 94], // point of the icon which will correspond to marker's location
+                        popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+                    });
                     marker = L.marker([asset.latitude, asset.longitude], { 
-                        icon: icon_file, color: "#e74c3c" 
+                        icon: svgIcon, color: "#e74c3c" 
                     }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><a href="${asset.url}" target="_blank">Info</a>`);
                     break; 
                 default:
