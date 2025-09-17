@@ -100,9 +100,9 @@ function updateAssetMarkers(assets) {
                     // marker = L.marker([asset.latitude, asset.longitude], { 
                     //     icon: svgIcon, color: "#e74c3c" 
                     // }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><a href="${asset.url}" target="_blank">Info</a>`);
-                    marker = L.marker(asset.location, { icon: svgIcon, 
+                    marker = L.marker([asset.latitude, asset.longitude], { icon: svgIcon, 
                         color: "#e74c3c" 
-                    }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><img src="${asset.url}" width=${asset.width} height=${asset.height}>`);
+                    }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><img src="${asset.url}" width=300 height=300>`);
                     break; 
                 default:
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
