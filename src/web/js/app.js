@@ -86,7 +86,6 @@ function updateAssetMarkers(assets) {
     assetLayer.clearLayers();
     assets.forEach(asset => {
         if (asset.longitude && asset.latitude) {
-
             var marker;
             switch (asset.type_code) {
                 case 'BRIDGE':
@@ -106,14 +105,6 @@ function updateAssetMarkers(assets) {
 
 function loadIncidentsByType() { 
     alert("Loading incidents by type..."); 
-}
-
-function loadAssets() { 
-    loadAssets(); 
-}
-
-function loadResources() { 
-    alert("Loading resource centers..."); 
 }
 
 document.addEventListener("DOMContentLoaded", function() {
