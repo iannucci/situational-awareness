@@ -496,9 +496,9 @@ rm -f /tmp/situational-awareness-nginx.conf
 echo -e "${BLUE}Creating meshtastic-client.sh...${NC}"
 
 cat > "$APP_DIR/src/info-sources/meshtastic-client.sh" << MESHTASTICCLIENTSH
-#! /bin/bash
+#!/bin/bash
 
-source /root/meshtastic-client/base/bin/activate
+./root/meshtastic-client/base/bin/activate
 python3 $APP_DIR/src/info-sources/meshtastic-client.py --config $ETC_DIR/config.json
 MESHTASTICCLIENTSH
 
@@ -521,7 +521,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=/root
-ExecStart=/usr/bin/python3 $APP_DIR/src/info-sources/meshtastic-client.sh --config $CFG_DIR/config.json
+ExecStart=$APP_DIR/src/info-sources/meshtastic-client.sh
 Restart=on-failure
 StandardOutput=syslog
 StandardError=syslog
