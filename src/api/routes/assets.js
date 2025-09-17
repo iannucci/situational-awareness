@@ -19,17 +19,16 @@ router.get("/status", async (req, res) => {
         try {
             const query = `
                 SELECT 
-                    ta.asset_id,
-                    ta.type_code,
-                    ta.tactical_call,
-                    ta.description,
-                    ta.url,
-                    ta.status,
-                    tat.type_name,
-                    tat.icon,
-                    ST_X(ul.location) as longitude,
-                    ST_Y(ul.location) as latitude,
-                    ul.timestamp as last_update
+                    ta.asset_id as asset_id,
+                    ta.type_code ,
+                    ta.tactical_call as tactical_call,
+                    ta.description as description,
+                    ta.url as url,
+                    ta.status as status,
+                    tat.icon as icon,
+                    ST_X(tal.location) as longitude,
+                    ST_Y(tal.location) as latitude,
+                    tal.timestamp as last_update
                 FROM tracked_assets ta
                 JOIN tracked_asset_types tat ON ta.type_code = tat.type_code
                 LEFT JOIN LATERAL (
@@ -38,7 +37,7 @@ router.get("/status", async (req, res) => {
                     WHERE asset_id = ta.asset_id
                     ORDER BY timestamp DESC 
                     LIMIT 1
-                ) ul ON true
+                ) tal ON true
             `;
             const result = await pool.query(query);
             res.json({
