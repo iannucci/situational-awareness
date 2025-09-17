@@ -3,6 +3,8 @@
 // Copyright © 2025 by Bob Iannucci.  All rights reserved worldwide.
 //
 
+const { load } = require("mime");
+
 // import { paloAltoBoundary } from './paloAltoBoundary.js';
 
 let map;
@@ -44,6 +46,8 @@ function initMap() {
     
     incidentLayer = L.layerGroup().addTo(map);
     assetLayer = L.layerGroup().addTo(map);
+    loadIncidents();
+    loadAssets();
 }
 
 async function loadIncidents() {
@@ -82,9 +86,19 @@ function updateAssetMarkers(assets) {
     assetLayer.clearLayers();
     assets.forEach(asset => {
         if (asset.longitude && asset.latitude) {
-            const marker = L.circleMarker([asset.latitude, asset.longitude], {
-                color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
-            }).bindPopup(`<b>${asset.asset_id}</b><br/>Type: ${asset.asset_type}<br/>Status: ${asset.status}`);
+
+            var marker;
+            switch (asset.type_code) {
+                case 'BRIDGE':
+                    marker = L.marker([asset.latitude, asset.longitude], { 
+                        icon: asset.icon + '.svg', color: "#e74c3c" 
+                    }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><a href="${asset.url}" target="_blank">Info</a>`);
+                    break; 
+                default:
+                    marker = L.circleMarker([asset.latitude, asset.longitude], {
+                        color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
+                    }).bindPopup(`<b>${asset.asset_id}</b><br/>Type: ${asset.type_code}<br/>Status: ${asset.status}`);
+            }
             assetLayer.addLayer(marker);
         }
     });
@@ -94,7 +108,7 @@ function loadIncidentsByType() {
     alert("Loading incidents by type..."); 
 }
 
-function loadUnits() { 
+function loadAssets() { 
     loadAssets(); 
 }
 

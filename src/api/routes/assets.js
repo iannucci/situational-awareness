@@ -23,8 +23,10 @@ router.get("/status", async (req, res) => {
                     ta.type_code,
                     ta.tactical_call,
                     ta.description,
-                    tat.type_name,
+                    ta.url,
                     ta.status,
+                    tat.type_name,
+                    tat.icon,
                     ST_X(ul.location) as longitude,
                     ST_Y(ul.location) as latitude,
                     ul.timestamp as last_update
