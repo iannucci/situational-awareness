@@ -3,7 +3,7 @@
 // Copyright © 2025 by Bob Iannucci.  All rights reserved worldwide.
 //
 
-const { load } = require("mime");
+// const { load } = require("mime");
 
 // import { paloAltoBoundary } from './paloAltoBoundary.js';
 
@@ -115,4 +115,4 @@ document.addEventListener("DOMContentLoaded", function() {
 setInterval(() => {
     loadIncidents();
     loadAssets(); 
-}, 30000);
+}, 15000);
