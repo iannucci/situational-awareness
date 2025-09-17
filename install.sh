@@ -83,6 +83,9 @@ if [ "$DB_PASSWORD" == "'none'" ]; then
     exit 1
 fi
 
+# Save the current directory without switching to another directory
+pushd -n
+
 echo "Creating app dir at $APP_DIR"
 sudo mkdir -p "$APP_DIR"
 sudo mkdir -p "$ETC_DIR"
@@ -498,7 +501,8 @@ cd ~
 python3 -m venv base
 source base/bin/activate
 pip3 install --upgrade pip
-pip3 install -r "./$NAME/requirements.txt"
+popd # Restore installation directory
+pip3 install -r "requirements.txt"
 # cd "$APP_DIR/src/info-sources"
 
 
