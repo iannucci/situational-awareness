@@ -93,13 +93,16 @@ function updateAssetMarkers(assets) {
                 case 'BRIDGE':
                     const svgIcon = L.icon({
                         iconUrl: 'assets/icons/' + asset.icon + '.svg',
-                        iconSize: [38, 95], // size of the icon
-                        iconAnchor: [22, 94], // point of the icon which will correspond to marker's location
-                        popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+                        iconSize: [38, 95],     // size of the icon
+                        iconAnchor: [19, 47],   // point of the icon which will correspond to marker's location
+                        popupAnchor: [0, -20]   // point from which the popup should open relative to the iconAnchor
                     });
-                    marker = L.marker([asset.latitude, asset.longitude], { 
-                        icon: svgIcon, color: "#e74c3c" 
-                    }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><a href="${asset.url}" target="_blank">Info</a>`);
+                    // marker = L.marker([asset.latitude, asset.longitude], { 
+                    //     icon: svgIcon, color: "#e74c3c" 
+                    // }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><a href="${asset.url}" target="_blank">Info</a>`);
+                    marker = L.marker(asset.location, { icon: svgIcon, 
+                        color: "#e74c3c" 
+                    }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><img src="${asset.url}" width=${asset.width} height=${asset.height}>`);
                     break; 
                 default:
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
