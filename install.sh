@@ -90,6 +90,7 @@ sudo mkdir -p "$ETC_DIR"
 echo "Copying project files"
 sudo cp -r database "$APP_DIR/"
 sudo cp -r src "$APP_DIR/"
+sudo cp -r requirements.txt "$APP_DIR/"
 sudo cp -r config-example.json "$ETC_DIR/"
 
 # FIXED: Get the absolute path of the project directory
@@ -492,23 +493,32 @@ fi
 # Clean up temporary file
 rm -f /tmp/situational-awareness-nginx.conf
 
-sudo mkdir -p /tmp/meshtastic-client
-cat > "/tmp/meshtastic-client.service" << MESHTASTIC
-    [Unit]
-    Description=Meshtastic Client Service
-    After=network.target
+# Set up python venv and install requirements
+echo -e "${BLUE}Setting up Python virtual environment...${NC}"
+sudo mkdir -p /root/meshtastic-client
+cd /root/meshtastic-client
+python3 -m venv base
+source base/bin/activate
+pip3 install --upgrade pip
+pip3 install -r "$APP_DIR/requirements.txt"
 
-    [Service]
-    User=root
-    WorkingDirectory=/tmp/meshtastic-client
-    ExecStart=/usr/bin/python3 /opt/situational-awareness/src/info-sources/meshtastic-client.py --config $CFG_DIR/config.json
-    Restart=on-failure
-    StandardOutput=syslog
-    StandardError=syslog
+echo -e "${BLUE}Creating meshtastic-client configuration...${NC}"
+cat > "/tmp/meshtastic-client.service" << MESHTASTICCFG
+[Unit]
+Description=Meshtastic Client Service
+After=network.target
 
-    [Install]
-    WantedBy=multi-user.target
-MESHTASTIC
+[Service]
+User=root
+WorkingDirectory=/root/meshtastic-client
+ExecStart=/usr/bin/python3 /opt/situational-awareness/src/info-sources/meshtastic-client.py --config $CFG_DIR/config.json
+Restart=on-failure
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target
+MESHTASTICCFG
 
 sudo cp -r /tmp/meshtastic-client.service /etc/systemd/system/meshtastic-client.service
 rm -f /tmp/meshtastic-client.service
@@ -516,15 +526,6 @@ sudo chmod 644 /etc/systemd/system/meshtastic-client.service
 sudo systemctl daemon-reload
 sudo systemctl enable meshtastic-client.service
 sudo systemctl start meshtastic-client.service
-
-# Set up python venv and install requirements
-echo -e "${BLUE}Setting up Python virtual environment...${NC}"
-popd # Restore installation directory
-python3 -m venv base
-source base/bin/activate
-pip3 install --upgrade pip
-pip3 install -r "requirements.txt"
-# cd "$APP_DIR/src/info-sources"
 
 # Test nginx configuration
 echo -e "${BLUE}Testing nginx configuration...${NC}"
