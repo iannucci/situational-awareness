@@ -495,11 +495,11 @@ rm -f /tmp/situational-awareness-nginx.conf
 # Set up python venv and install requirements
 echo -e "${BLUE}Setting up Python virtual environment...${NC}"
 cd ~
-python3 -m venv base
+python -m venv base
 source base/bin/activate
-pip3 install --upgrade pip
+pip install --upgrade pip
 popd # Restore installation directory
-pip3 install -r "requirements.txt"
+pip install -r "requirements.txt"
 # cd "$APP_DIR/src/info-sources"
 
 
