@@ -85,6 +85,7 @@ function updateIncidentMarkers(incidents) {
 function updateAssetMarkers(assets) {
     assetLayer.clearLayers();
     assets.forEach(asset => {
+        console.log(asset);
         if (asset.longitude && asset.latitude) {
             var marker;
             switch (asset.type_code) {
