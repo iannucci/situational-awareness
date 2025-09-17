@@ -493,14 +493,20 @@ fi
 # Clean up temporary file
 rm -f /tmp/situational-awareness-nginx.conf
 
-# Set up python venv and install requirements
-echo -e "${BLUE}Setting up Python virtual environment...${NC}"
+echo -e "${BLUE}Creating meshtastic-client.sh...${NC}"
+
+cat > "$APP_DIR/src/info-sources/meshtastic-client.sh" << MESHTASTICCLIENTSH
+#!/bin/bash
 sudo mkdir -p /root/meshtastic-client
 cd /root/meshtastic-client
 python3 -m venv base
 source base/bin/activate
 pip3 install --upgrade pip
 pip3 install -r "$APP_DIR/requirements.txt"
+python3 $APP_DIR/src/info-sources/meshtastic-client.py --config $ETC_DIR/config.json
+MESHTASTICCLIENTSH
+
+sudo chmod a+x "$APP_DIR/src/info-sources/meshtastic-client.sh"
 
 echo -e "${BLUE}Creating meshtastic-client configuration...${NC}"
 cat > "/tmp/meshtastic-client.service" << MESHTASTICCFG
@@ -511,7 +517,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=/root/meshtastic-client
-ExecStart=/usr/bin/python3 /opt/situational-awareness/src/info-sources/meshtastic-client.py --config $CFG_DIR/config.json
+ExecStart=/usr/bin/python3 $APP_DIR/src/info-sources/meshtastic-client.sh --config $CFG_DIR/config.json
 Restart=on-failure
 StandardOutput=syslog
 StandardError=syslog
