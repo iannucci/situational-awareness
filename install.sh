@@ -496,10 +496,9 @@ rm -f /tmp/situational-awareness-nginx.conf
 echo -e "${BLUE}Creating meshtastic-client.sh...${NC}"
 
 cat > "$APP_DIR/src/info-sources/meshtastic-client.sh" << MESHTASTICCLIENTSH
-#!/bin/bash
+#! /bin/bash
 
-cd /root/meshtastic-client
-source base/bin/activate
+source /root/meshtastic-client/base/bin/activate
 python3 $APP_DIR/src/info-sources/meshtastic-client.py --config $ETC_DIR/config.json
 MESHTASTICCLIENTSH
 
