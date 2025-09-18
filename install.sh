@@ -533,6 +533,47 @@ sudo systemctl daemon-reload
 sudo systemctl enable meshtastic-client.service
 sudo systemctl start meshtastic-client.service
 
+echo -e "${BLUE}Creating scenario-setup script...${NC}"
+cat > "$APP_DIR/scenario-setup.sh" << SCENARIOSETUPSH
+#!/bin/bash
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+if [[ \$EUID -ne 0 ]]; then
+    echo -e "\${RED}This script must be run as root (use sudo)\${NC}"
+    exit 1
+fi
+
+ASSETS_FILE="/etc/scenario-setup/assets.json"
+
+while [[ "\$#" -gt 0 ]]; do
+    case "\$1" in
+        --assets)
+            ASSETS_FILE="\$2"
+            shift
+            ;;
+        *)
+            echo "Unknown option: \$1"
+            usage
+            ;;
+    esac
+    shift # Shift past the current argument (option or flag)
+done
+
+mkdir -p /root/scenario-setup
+cd /root/scenario-setup
+python3 -m venv base
+source base/bin/activate
+pip3 install -r "$APP_DIR/requirements.txt"
+python3 $APP_DIR/src/info-sources/scenario-setup.py --config $ETC_DIR/config.json --assets \$ASSETS_FILE
+SCENARIOSETUPSH
+
+sudo chmod a+x "$APP_DIR/scenario-setup.sh"
+
 # Test nginx configuration
 echo -e "${BLUE}Testing nginx configuration...${NC}"
 if ! nginx -t; then

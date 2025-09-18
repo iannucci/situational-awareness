@@ -233,7 +233,7 @@ except Exception as e:
 
 assets = {}
 try:
-    assets_path = find_config_path(args.config)
+    assets_path = find_config_path(args.assets)
     with open(assets_path, "r") as f:
         assets = json.load(f)
     print("✅ Fixed asset data loaded successfully")
