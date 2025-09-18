@@ -545,31 +545,30 @@ NC='\033[0m'
 
 if [[ \$EUID -ne 0 ]]; then
     echo -e "\${RED}This script must be run as root (use sudo)\${NC}"
-    exit 1
+else
+    ASSETS_FILE="/etc/situational-awareness/assets.json"
+
+    while [[ "\$#" -gt 0 ]]; do
+        case "\$1" in
+            --assets)
+                ASSETS_FILE="\$2"
+                shift
+                ;;
+            *)
+                echo "Unknown option: \$1"
+                usage
+                ;;
+        esac
+        shift # Shift past the current argument (option or flag)
+    done
+
+    mkdir -p /root/scenario-setup
+    cd /root/scenario-setup
+    python3 -m venv base
+    source base/bin/activate
+    pip3 install -r "$APP_DIR/requirements.txt"
+    python3 $APP_DIR/src/info-sources/scenario-setup.py --config $ETC_DIR/config.json --assets \$ASSETS_FILE
 fi
-
-ASSETS_FILE="/etc/scenario-setup/assets.json"
-
-while [[ "\$#" -gt 0 ]]; do
-    case "\$1" in
-        --assets)
-            ASSETS_FILE="\$2"
-            shift
-            ;;
-        *)
-            echo "Unknown option: \$1"
-            usage
-            ;;
-    esac
-    shift # Shift past the current argument (option or flag)
-done
-
-mkdir -p /root/scenario-setup
-cd /root/scenario-setup
-python3 -m venv base
-source base/bin/activate
-pip3 install -r "$APP_DIR/requirements.txt"
-python3 $APP_DIR/src/info-sources/scenario-setup.py --config $ETC_DIR/config.json --assets \$ASSETS_FILE
 SCENARIOSETUPSH
 
 sudo chmod a+x "$APP_DIR/scenario-setup.sh"
