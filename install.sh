@@ -23,6 +23,12 @@ DB_HOST='pa-sitrep.local.mesh'
 DB_PORT=5432
 DB_NAME='situational_awareness'
 
+MESHTASTIC_PYTHON='meshtastic_client.py'
+MESHTASTIC='meshtastic-client'
+
+SCENARIO_PYTHON='scenario_setup.py'
+SCENARIO='scenario-setup'
+
 echo -e "${BLUE}🚨 Situational Awareness System Installer 🚨${NC}"
 
 if [[ $EUID -ne 0 ]]; then
@@ -493,31 +499,31 @@ fi
 # Clean up temporary file
 rm -f /tmp/situational-awareness-nginx.conf
 
-echo -e "${BLUE}Creating meshtastic-client.sh...${NC}"
+echo -e "${BLUE}Creating $MESHTASTIC.sh...${NC}"
 
-cat > "$APP_DIR/src/info-sources/meshtastic-client.sh" << MESHTASTICCLIENTSH
+cat > "$APP_DIR/src/info-sources/$MESHTASTIC.sh" << MESHTASTICCLIENTSH
 #!/bin/bash
 
-mkdir -p /root/meshtastic-client
-cd /root/meshtastic-client
+mkdir -p /root/$MESHTASTIC
+cd /root/$MESHTASTIC
 python3 -m venv base
 source base/bin/activate
 pip3 install -r "$APP_DIR/requirements.txt"
-python3 $APP_DIR/src/info-sources/meshtastic-client.py --config $ETC_DIR/config.json
+python3 $APP_DIR/src/info-sources/$MESHTASTIC_PYTHON --config $ETC_DIR/config.json
 MESHTASTICCLIENTSH
 
-sudo chmod a+x "$APP_DIR/src/info-sources/meshtastic-client.sh"
+sudo chmod a+x "$APP_DIR/src/info-sources/$MESHTASTIC.sh"
 
-echo -e "${BLUE}Creating meshtastic-client configuration...${NC}"
-cat > "/tmp/meshtastic-client.service" << MESHTASTICCFG
+echo -e "${BLUE}Creating $MESHTASTIC configuration...${NC}"
+cat > "/tmp/$MESHTASTIC.service" << MESHTASTICCFG
 [Unit]
 Description=Meshtastic Client Service
 After=network.target
 
 [Service]
 User=root
-WorkingDirectory=/root/meshtastic-client
-ExecStart=$APP_DIR/src/info-sources/meshtastic-client.sh
+WorkingDirectory=/root/$MESHTASTIC
+ExecStart=$APP_DIR/src/info-sources/$MESHTASTIC.sh
 Restart=on-failure
 StandardOutput=syslog
 StandardError=syslog
@@ -526,15 +532,15 @@ StandardError=syslog
 WantedBy=multi-user.target
 MESHTASTICCFG
 
-sudo cp -r /tmp/meshtastic-client.service /etc/systemd/system/meshtastic-client.service
-rm -f /tmp/meshtastic-client.service
-sudo chmod 644 /etc/systemd/system/meshtastic-client.service
+sudo cp -r /tmp/$MESHTASTIC.service /etc/systemd/system/$MESHTASTIC.service
+rm -f /tmp/$MESHTASTIC.service
+sudo chmod 644 /etc/systemd/system/$MESHTASTIC.service
 sudo systemctl daemon-reload
-sudo systemctl enable meshtastic-client.service
-sudo systemctl start meshtastic-client.service
+sudo systemctl enable $MESHTASTIC.service
+sudo systemctl start $MESHTASTIC.service
 
-echo -e "${BLUE}Creating scenario-setup script...${NC}"
-cat > "$APP_DIR/scenario-setup.sh" << SCENARIOSETUPSH
+echo -e "${BLUE}Creating $SCENARIO script...${NC}"
+cat > "$APP_DIR/$SCENARIO.sh" << SCENARIOSETUPSH
 #!/bin/bash
 
 RED='\033[0;31m'
@@ -562,16 +568,16 @@ else
         shift # Shift past the current argument (option or flag)
     done
 
-    mkdir -p /root/scenario-setup
-    cd /root/scenario-setup
+    mkdir -p /root/$SCENARIO
+    cd /root/$SCENARIO
     python3 -m venv base
     source base/bin/activate
     pip3 install -r "$APP_DIR/requirements.txt"
-    python3 $APP_DIR/src/info-sources/scenario-setup.py --config $ETC_DIR/config.json --assets \$ASSETS_FILE
+    python3 $APP_DIR/src/info-sources/$SCENARIO_PYTHON --config $ETC_DIR/config.json --assets \$ASSETS_FILE
 fi
 SCENARIOSETUPSH
 
-sudo chmod a+x "$APP_DIR/scenario-setup.sh"
+sudo chmod a+x "$APP_DIR/$SCENARIO.sh"
 
 # Test nginx configuration
 echo -e "${BLUE}Testing nginx configuration...${NC}"
@@ -661,12 +667,23 @@ echo "📁 Project Root: $APP_DIR"
 echo "📁 Web Root: $WEB_ROOT"
 echo "🔑 Database Password: $DB_PASSWORD"
 echo ""
-echo -e "${BLUE}Service Management:${NC}"
+echo -e "${BLUE}Service Management for $NAME:${NC}"
 echo "• Start:   sudo systemctl start $NAME"
 echo "• Stop:    sudo systemctl stop $NAME"
 echo "• Restart: sudo systemctl restart $NAME"
 echo "• Status:  sudo systemctl status $NAME"
 echo "• Logs:    sudo journalctl -u $NAME -f"
+echo ""
+echo -e "${BLUE}Service Management for $MESHTASTIC:${NC}"
+echo "• Start:   sudo systemctl start $MESHTASTIC"
+echo "• Stop:    sudo systemctl stop $MESHTASTIC"
+echo "• Restart: sudo systemctl restart $MESHTASTIC"
+echo "• Status:  sudo systemctl status $MESHTASTIC"
+echo "• Logs:    sudo journalctl -u $MESHTASTIC -f"
+echo ""
+echo -e "${BLUE}Scenario setup:${NC}"
+echo "• Run:     sudo $APP_DIR/$SCENARIO.sh --assets /path/to/assets.json"
+echo "• Note:    If no --assets provided, defaults to /etc/situational-awareness/assets.json"
 echo ""
 echo -e "${BLUE}Troubleshooting:${NC}"
 echo "• Service logs: sudo journalctl -u $NAME -f"

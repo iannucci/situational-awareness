@@ -256,68 +256,6 @@ database = ScenarioDB(
     dbconfig.get("port"),
 )
 
-
-# -- Sample data
-
-# Change department to organization
-# Eliminate color_code
-# Add default_icon (name of a file in web/assets/icons)
-#
-# INSERT INTO tracked_asset_types (type_code, type_name, department, color_code) VALUES
-# ('FIRE_ENGINE', 'Fire Engine', 'PAFD'),
-# ('AMBULANCE', 'Ambulance', 'PAFD'),
-# ('POLICE_UNIT', 'Police Unit', 'PAPD'),
-# ('ESV', 'Emergency Services Volunteer', 'OES'),
-# ('BRIDGE', 'Bridge', 'Public Works'),
-# ('SHELTER', 'Shelter', 'OES'),
-# ('OPS', 'Operations Center', 'OES')
-# ON CONFLICT (type_code) DO NOTHING;
-
-
-# Change id to asset_id
-# Change tracked_asset_type_id to type_code
-# Change call_sign to tactical_call
-# Eliminate station_name
-# Eliminate station_location
-# Add description
-# Add url
-#
-# INSERT INTO tracked_assets (id, tracked_asset_type_id, call_sign, station_name, station_location) VALUES
-# ('EOC', 'OPS', 'EOC', 'City Hall', ST_GeomFromText('POINT(-122.1430 37.4447)', 4326)),
-# ('DOC', 'OPS', 'DOC', 'Cubberley Community Canter', ST_GeomFromText('POINT(-122.1477 37.4443)', 4326)),
-# ('SHELTER-01', 'Mitchell Park Community Center', 'Community Center', ST_GeomFromText('POINT(-122.1549 37.4282)', 4326), '3700 Middlefield Rd, Palo Alto, CA', 150, true, true, '(650) 463-4920'),
-# ('SHELTER-02', 'Cubberley Community Center', 'Community Center', ST_GeomFromText('POINT(-122.1345 37.4092)', 4326), '4000 Middlefield Rd, Palo Alto, CA', 200, true, true, '(650) 463-4950')
-# ('PAFD-E01', 1, 'Engine 1', 'Station 1', ST_GeomFromText('POINT(-122.1576 37.4614)', 4326)),
-# ('PAEMS-M01', 2, 'Medic 1', 'Station 1', ST_GeomFromText('POINT(-122.1576 37.4614)', 4326)),
-# ('PAPD-01', 3, 'Unit 1', 'Police HQ', ST_GeomFromText('POINT(-122.1560 37.4419)', 4326))
-# ON CONFLICT (id) DO NOTHING;
-
-# Change tracked_asset_id to asset_id
-#
-# INSERT INTO tracked_asset_locations (tracked_asset_id, location, status, activity) VALUES
-# ('PAFD-E01', ST_GeomFromText('POINT(-122.1576 37.4614)', 4326), 'Available', 'In Station'),
-# ('PAEMS-M01', ST_GeomFromText('POINT(-122.1630 37.4419)', 4326), 'Dispatched', 'En Route'),
-# ('PAPD-01', ST_GeomFromText('POINT(-122.1560 37.4419)', 4326), 'On Patrol', 'Routine Patrol')
-# ON CONFLICT (tracked_asset_id, timestamp) DO NOTHING;
-
-# Eliminate shelters table, merge into assets
-
-# -- Only insert incidents if the table is empty
-# INSERT INTO incidents (incident_type_id, severity, location, address, title, description)
-# SELECT 1, 'High', ST_GeomFromText('POINT(-122.1630 37.4419)', 4326), '450 University Ave', 'Commercial Building Fire', 'Heavy smoke showing from 2-story building'
-# WHERE NOT EXISTS (SELECT 1 FROM incidents WHERE address = '450 University Ave');
-
-# INSERT INTO incidents (incident_type_id, severity, location, address, title, description)
-# SELECT 2, 'Medium', ST_GeomFromText('POINT(-122.1334 37.4505)', 4326), '660 Stanford Shopping Center', 'Medical Emergency', 'Person collapsed, conscious and breathing'
-# WHERE NOT EXISTS (SELECT 1 FROM incidents WHERE address = '660 Stanford Shopping Center');
-
-
-# INSERT INTO incident_types (type_code, type_name, default_severity, color_code) VALUES
-# ('FIRE', 'Structure Fire', 'High', '#e74c3c'),
-# ('MEDICAL', 'Medical Emergency', 'Medium', '#f39c12'),
-# ('ACCIDENT', 'Traffic Accident', 'Medium', '#e67e22')
-# ON CONFLICT (type_code) DO NOTHING;
-
 asset_list = []
 type_codes_set = set()
 type_list = []
