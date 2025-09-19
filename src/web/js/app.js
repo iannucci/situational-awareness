@@ -5,7 +5,7 @@
 
 // const { load } = require("mime");
 
-import * as paloAltoBoundary from './paloAlto.geojson';
+import * as paloAltoBoundary from './Palo Alto.geojson';
 
 let map;
 let incidentLayer, assetLayer;
