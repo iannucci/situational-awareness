@@ -11,6 +11,7 @@ import argparse
 import json
 import time
 from mattermost_client import MattermostClient
+import pprint
 
 DEFAULT_CFG = "/etc/situational-awareness/config.json"
 
@@ -153,8 +154,9 @@ class MeshtasticClient:
                 }
                 self.callback(callback_data)
             except Exception as e:
+                pretty_packet = pprint.pformat(packet, indent=2)
                 self.logger.error(
-                    f"❌ [Meshtastic] Error processing telemetry packet: {e}"
+                    f"❌ [Meshtastic] Error processing telemetry packet: {e}\n<{pretty_packet}>"
                 )
 
 
