@@ -144,17 +144,17 @@ if [[ -f /etc/debian_version ]]; then
     # Ubuntu/Debian - Install PostgreSQL 16 (more stable than 17)
     apt update -qq
     rm -f /usr/share/keyrings/postgresql-archive-keyring.gpg
-    apt install -qq -y wget ca-certificates
+    apt install -qq -y wget ca-certificates | grep -v "already the newest version"
     
     # Add PostgreSQL official APT repository
     wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
     
     apt update -qq
-    apt install -qq -y postgresql-16 postgresql-client-16 postgresql-16-postgis-3 nodejs npm nginx git curl
+    apt install -qq -y postgresql-16 postgresql-client-16 postgresql-16-postgis-3 nodejs npm nginx git curl | grep -v "already the newest version"
     
     # Install TimescaleDB (optional)
-    apt install -qq -y timescaledb-2-postgresql-16 || echo -e "${YELLOW}TimescaleDB not available, continuing without it${NC}"
+    apt install -qq -y timescaledb-2-postgresql-16 || echo -e "${YELLOW}TimescaleDB not available, continuing without it${NC}" | grep -v "already the newest version"
     
 elif [[ -f /etc/redhat-release ]]; then
     # RHEL/CentOS/Fedora
