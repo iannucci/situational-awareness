@@ -209,9 +209,9 @@ fi
 
 # Create database and user
 echo -e "${BLUE}Creating database...${NC}"
-sudo -u postgres psql -c "DROP database IF EXISTS $DB_NAME WITH (FORCE);" || true
+sudo -u postgres psql --quiet -c "DROP database IF EXISTS $DB_NAME WITH (FORCE);" || true
 sudo -u postgres createdb $DB_NAME || echo -e "${YELLOW}Database may already exist${NC}"
-sudo -u postgres psql -c "DROP OWNED BY $DB_USER;" || true
+sudo -u postgres psql --quiet -c "DROP OWNED BY $DB_USER;" || true
 
 # echo -e "${BLUE}Dropping user $DB_USER if exists...${NC}"
 # sudo -u postgres psql -c "SELECT 'DROP OWNED BY $DB_USER' FROM pg_roles WHERE rolname = '$DB_USER' \gexec"
@@ -221,21 +221,21 @@ sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" || true
 
 echo -e "${BLUE}Creating user $DB_USER...${NC}"
 echo "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" 
-sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" || true
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" || true
-sudo -u postgres psql -c "ALTER USER $DB_USER CREATEDB;" || true
+sudo -u postgres psql --quiet -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" || true
+sudo -u postgres psql --quiet -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" || true
+sudo -u postgres psql --quiet -c "ALTER USER $DB_USER CREATEDB;" || true
 
 # Grant schema permissions
 echo -e "${BLUE}Setting up database permissions...${NC}"
-sudo -u postgres psql -d $DB_NAME -c "GRANT ALL ON SCHEMA public TO $DB_USER;" || true
-sudo -u postgres psql -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;" || true
-sudo -u postgres psql -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;" || true
-sudo -u postgres psql -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;" || true
-sudo -u postgres psql -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;" || true
+sudo -u postgres psql --quiet -d $DB_NAME -c "GRANT ALL ON SCHEMA public TO $DB_USER;" || true
+sudo -u postgres psql --quiet -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;" || true
+sudo -u postgres psql --quiet -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;" || true
+sudo -u postgres psql --quiet -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;" || true
+sudo -u postgres psql --quiet -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;" || true
 
 echo -e "${BLUE}Loading database schema from $SCHEMA_TMP...${NC}"
 if [[ -f "$SCHEMA_TMP" ]]; then
-    sudo -u postgres psql -d $DB_NAME -f "$SCHEMA_TMP" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
+    sudo -u postgres psql --quiet -d $DB_NAME -f "$SCHEMA_TMP" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
 else
     echo -e "${RED}Error: Schema file not found at $SCHEMA_TMP${NC}"
     exit 1
