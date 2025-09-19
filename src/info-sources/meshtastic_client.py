@@ -73,8 +73,8 @@ class MeshtasticClient:
             self.interface = meshtastic_tcp.TCPInterface(
                 hostname=self.host, portNumber=4403, connectNow=True, debugOut=None
             )
-            logging.getLogger("meshtastic.tcp_interface").setLevel(logging.INFO)
-            logging.getLogger("meshtastic-client").setLevel(logging.INFO)
+            # logging.getLogger("meshtastic.tcp_interface").setLevel(logging.INFO)
+            # logging.getLogger("meshtastic-client").setLevel(logging.INFO)
             logging.getLogger("meshtastic").setLevel(logging.INFO)
             logging.getLogger("meshtastic_client").setLevel(logging.INFO)
             pub.setNotificationFlags(all=False)
@@ -104,9 +104,9 @@ class MeshtasticClient:
         return short_name, long_name
 
     def _onReceive(self, packet, interface):
-        self.logger.debug("[Meshtastic] _onReceive")
+        self.logger.info("[Meshtastic] _onReceive")
         # Check if the packet contains a text message
-        self.logger.debug(f"[Meshtastic] Received packet <{packet}>")
+        self.logger.info(f"[Meshtastic] Received packet <{packet}>")
         if (
             "decoded" in packet
             and "portnum" in packet["decoded"]
@@ -118,19 +118,19 @@ class MeshtasticClient:
                 from_id = packet["fromId"]  # from_id is of the form !da574b90
                 short_name, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
-                self.logger.debug(
+                self.logger.info(
                     f"✅ [Meshtastic] Received message <{text_message}> from {callsign}"
                 )
                 self.callback(callsign, text_message)
 
             except UnicodeDecodeError:
-                self.logger.debug("[Meshtastic] Received a non-UTF-8 text message.")
+                self.logger.info("[Meshtastic] Received a non-UTF-8 text message.")
         # else:
         #   Handle other types of packets or log them for debugging
         #   print(f"Received non-text packet: {packet}")
 
     def _onPositionReceive(self, packet, interface):
-        self.logger.debug("[Meshtastic] _onPositionReceive")
+        self.logger.info("[Meshtastic] _onPositionReceive")
         if "position" in packet:
             pos = packet["position"]
             from_id = packet["fromId"]  # from_id is of the form !da574b90
@@ -147,7 +147,7 @@ class MeshtasticClient:
         #   print(f"Received non-position packet: {packet}")
 
     def _onTelemetryReceive(self, packet, interface):
-        self.logger.debug("[Meshtastic] _onTelemetryReceive")
+        self.logger.info("[Meshtastic] _onTelemetryReceive")
         if "deviceMetrics" in packet:
             metrics = packet["deviceMetrics"]
             from_id = packet["fromId"]  # from_id is of the form !da574b90
@@ -191,7 +191,7 @@ def main():
         print(f"Error loading config {config_path}: {e}")
         return
     logger = build_logger(config.get("log_level", "INFO"))
-    logger.debug("✅ [Meshtastic] Logging is active")
+    logger.info("✅ [Meshtastic] Logging is active")
 
     meshtastic_client = None
     mattermost_client = None
