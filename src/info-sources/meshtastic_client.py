@@ -65,7 +65,7 @@ class MeshtasticClient:
         return short_name, long_name
 
     def _onReceive(self, packet, interface):
-        self.logger.info("🚨 [Meshtastic] _onReceive")
+        # self.logger.info("🚨 [Meshtastic] _onReceive")
         # self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
         # loggerInfo(self.logger)
         if (
@@ -80,7 +80,7 @@ class MeshtasticClient:
                 _, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
                 self.logger.info(
-                    f"✅ [Meshtastic] Received message <{text_message}> from {callsign}"
+                    f"✅ [Meshtastic] Message from {callsign}: <{text_message}>"
                 )
                 callback_data = {
                     "type": "message",
@@ -90,11 +90,11 @@ class MeshtasticClient:
                 self.callback(callback_data)
             except Exception as e:
                 self.logger.error(
-                    f"[Meshtastic] Error processing text message packet: {e}"
+                    f"❌ [Meshtastic] Error processing text message packet: {e}"
                 )
 
     def _onPositionReceive(self, packet, interface):
-        self.logger.info("🚨 [Meshtastic] _onPositionReceive")
+        # self.logger.info("🚨 [Meshtastic] _onPositionReceive")
         # self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
         # loggerInfo(self.logger)
         if (
@@ -122,13 +122,14 @@ class MeshtasticClient:
                 }
                 self.callback(callback_data)
             except Exception as e:
-                self.logger.error(f"[Meshtastic] Error processing position packet: {e}")
+                self.logger.error(
+                    f"❌ [Meshtastic] Error processing position packet: {e}"
+                )
 
     def _onTelemetryReceive(self, packet, interface):
-        self.logger.info("🚨 [Meshtastic] _onTelemetryReceive")
+        # self.logger.info("🚨 [Meshtastic] _onTelemetryReceive")
         # self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
         # loggerInfo(self.logger)
-
         if (
             "decoded" in packet
             and "portnum" in packet["decoded"]
@@ -139,8 +140,8 @@ class MeshtasticClient:
                 from_id = packet["fromId"]  # from_id is of the form !da574b90
                 _, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
-                battery = telemetry.get("batteryLevel", None)
-                uptime = telemetry.get("uptimeSeconds", None)
+                battery = telemetry.get("battery_level", None)
+                uptime = telemetry.get("uptime_seconds", None)
                 self.logger.info(
                     f"✅ [Meshtastic] Telemetry update from {callsign}: battery={battery}, uptime={uptime}"
                 )
@@ -152,7 +153,9 @@ class MeshtasticClient:
                 }
                 self.callback(callback_data)
             except Exception as e:
-                self.logger.error(f"[Meshtastic] Error processing position packet: {e}")
+                self.logger.error(
+                    f"❌ [Meshtastic] Error processing telemetry packet: {e}"
+                )
 
 
 def find_config_path(cli_path: str):
@@ -180,7 +183,7 @@ def main():
         with open(config_path, "r", encoding="utf-8") as config_file:
             config = json.load(config_file)
     except Exception as e:
-        print(f"Error loading config {config_path}: {e}")
+        print(f"❌ [Meshtastic] Error loading config {config_path}: {e}")
         return
     logger = build_logger(config.get("log_level", "INFO"))
     logger.info("✅ [Meshtastic] Logging is active")

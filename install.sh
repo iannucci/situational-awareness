@@ -314,7 +314,6 @@ Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=$NAME
 
 # FIXED: Environment file
 EnvironmentFile=$APP_DIR/.env
@@ -528,8 +527,8 @@ User=root
 WorkingDirectory=/root/$MESHTASTIC
 ExecStart=$APP_DIR/src/info-sources/$MESHTASTIC.sh
 Restart=on-failure
-StandardOutput=syslog
-StandardError=syslog
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
