@@ -82,8 +82,12 @@ class MeshtasticClient:
                 self.logger.info(
                     f"✅ [Meshtastic] Received message <{text_message}> from {callsign}"
                 )
-                self.callback(callsign, text_message)
-
+                callback_data = {
+                    "type": "message",
+                    "callsign": callsign,
+                    "message": text_message,
+                }
+                self.callback(callback_data)
             except Exception as e:
                 self.logger.error(
                     f"[Meshtastic] Error processing text message packet: {e}"
@@ -109,6 +113,14 @@ class MeshtasticClient:
                 self.logger.info(
                     f"✅ [Meshtastic] Position update from {callsign}: lat={lat}, lon={lon}, alt={alt}"
                 )
+                callback_data = {
+                    "type": "position",
+                    "callsign": callsign,
+                    "latitude": lat,
+                    "longitude": lon,
+                    "altitude": alt,
+                }
+                self.callback(callback_data)
             except Exception as e:
                 self.logger.error(f"[Meshtastic] Error processing position packet: {e}")
 
@@ -132,6 +144,13 @@ class MeshtasticClient:
                 self.logger.info(
                     f"✅ [Meshtastic] Telemetry update from {callsign}: battery={battery}, uptime={uptime}"
                 )
+                callback_data = {
+                    "type": "position",
+                    "callsign": callsign,
+                    "battery": battery,
+                    "uptime": uptime,
+                }
+                self.callback(callback_data)
             except Exception as e:
                 self.logger.error(f"[Meshtastic] Error processing position packet: {e}")
 

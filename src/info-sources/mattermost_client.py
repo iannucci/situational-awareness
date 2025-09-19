@@ -33,9 +33,19 @@ class MattermostClient:
             self.admin_driver.logout()
             self.admin_driver = None
 
-    def callback(self, callsign, message):
-        self.logger.info(f"[Mattermost] Callback received: {callsign}: {message}")
-        self._post(callsign, message)
+    def callback(self, callback_data):
+        self.logger.info(f"✅ [Mattermost] Callback received: {callsign}: {message}")
+        match callback_data["type"]:
+            case "message":
+                pass
+            case "position":
+                pass
+            case "telemetry":
+                pass
+            case _:
+                self.logger.info(
+                    f"❌ [Mattermost] Unknown callback type: {callback_data['type']}"
+                )
 
     # Returns the text team annd channel names as well as the user's token
     def _lookup_user_by_callsign(self, callsign):

@@ -84,6 +84,9 @@ while [[ "$#" -gt 0 ]]; do
     shift # Shift past the current argument (option or flag)
 done
 
+sudo systemctl stop $NAME.service 2> /dev/null
+sudo systemctl stop $MESHTASTIC.service 2> /dev/null
+
 if [ "$DB_PASSWORD" == "'none'" ]; then
     echo -e "${RED}Must specify a --password${NC}"
     exit 1
