@@ -62,6 +62,14 @@ DEFAULT_CFG = "/etc/situational-awareness/config.json"
 # }
 
 
+def loggerInfo(my_logger):
+    for name, logger in logging.Logger.manager.loggerDict.items():
+        if isinstance(logger, logging.Logger):
+            my_logger.info(
+                f"🚨 [Meshtastic] Logger Name: {name}, Level: {logger.getEffectiveLevel()}"
+            )
+
+
 class MeshtasticClient:
     def __init__(self, host, callback, logger):
         self.host = host
@@ -104,9 +112,9 @@ class MeshtasticClient:
         return short_name, long_name
 
     def _onReceive(self, packet, interface):
-        self.logger.info("[Meshtastic] _onReceive")
+        self.logger.info("🚨 [Meshtastic] _onReceive")
         # Check if the packet contains a text message
-        self.logger.info(f"[Meshtastic] Received packet <{packet}>")
+        self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
         if (
             "decoded" in packet
             and "portnum" in packet["decoded"]
@@ -130,7 +138,7 @@ class MeshtasticClient:
         #   print(f"Received non-text packet: {packet}")
 
     def _onPositionReceive(self, packet, interface):
-        self.logger.info("[Meshtastic] _onPositionReceive")
+        self.logger.info("🚨 [Meshtastic] _onPositionReceive")
         if "position" in packet:
             pos = packet["position"]
             from_id = packet["fromId"]  # from_id is of the form !da574b90
@@ -147,7 +155,7 @@ class MeshtasticClient:
         #   print(f"Received non-position packet: {packet}")
 
     def _onTelemetryReceive(self, packet, interface):
-        self.logger.info("[Meshtastic] _onTelemetryReceive")
+        self.logger.info("🚨 [Meshtastic] _onTelemetryReceive")
         if "deviceMetrics" in packet:
             metrics = packet["deviceMetrics"]
             from_id = packet["fromId"]  # from_id is of the form !da574b90
@@ -203,8 +211,9 @@ def main():
         meshtastic_client = MeshtasticClient(
             meshtastic_config.get("host", ""), mattermost_client.callback, logger
         )
-        logger_names = list(logging.root.manager.loggerDict.keys())
-        logger.info(f"🚨 [Meshtastic] Loggers: {logger_names}")
+
+        loggerInfo(logger)
+
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
