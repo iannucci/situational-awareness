@@ -73,7 +73,11 @@ class MeshtasticClient:
             self.interface = meshtastic_tcp.TCPInterface(
                 hostname=self.host, portNumber=4403, connectNow=True, debugOut=None
             )
-            logging.getLogger("meshtastic.tcp_interface").setLevel(logging.INFO)
+
+            logger_names = list(logging.root.manager.loggerDict.keys())
+            self.logger.info(f"[Meshtastic] Loggers: {logger_names}")
+
+            # logging.getLogger("meshtastic.tcp_interface").setLevel(logging.INFO)
             pub.setNotificationFlags(all=False)
             pub.subscribe(self._onReceive, "meshtastic.receive")
             pub.subscribe(self._onPositionReceive, "meshtastic.receive.position")
