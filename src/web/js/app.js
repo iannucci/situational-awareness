@@ -5,7 +5,7 @@
 
 // const { load } = require("mime");
 
-// import { paloAltoBoundary } from './paloAltoBoundary.js';
+import * as paloAltoBoundary from './paloAlto.geojson';
 
 let map;
 let incidentLayer, assetLayer;
@@ -42,7 +42,7 @@ function initMap() {
     }).addTo(map);
     boundaryRectangle.bindPopup("<b>Palo Alto Service Area</b><br/>Situational Awareness Coverage Zone");
 
-    // L.geoJSON(paloAltoBoundary).addTo(map);
+    L.geoJSON(paloAltoBoundary).addTo(map);
     
     incidentLayer = L.layerGroup().addTo(map);
     assetLayer = L.layerGroup().addTo(map);
