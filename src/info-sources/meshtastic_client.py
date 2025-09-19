@@ -113,8 +113,8 @@ class MeshtasticClient:
 
     def _onReceive(self, packet, interface):
         self.logger.info("🚨 [Meshtastic] _onReceive")
-        # Check if the packet contains a text message
         self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
+        loggerInfo(self.logger)
         if (
             "decoded" in packet
             and "portnum" in packet["decoded"]
@@ -139,6 +139,8 @@ class MeshtasticClient:
 
     def _onPositionReceive(self, packet, interface):
         self.logger.info("🚨 [Meshtastic] _onPositionReceive")
+        self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
+        loggerInfo(self.logger)
         if "position" in packet:
             pos = packet["position"]
             from_id = packet["fromId"]  # from_id is of the form !da574b90
@@ -156,6 +158,8 @@ class MeshtasticClient:
 
     def _onTelemetryReceive(self, packet, interface):
         self.logger.info("🚨 [Meshtastic] _onTelemetryReceive")
+        self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
+        loggerInfo(self.logger)
         if "deviceMetrics" in packet:
             metrics = packet["deviceMetrics"]
             from_id = packet["fromId"]  # from_id is of the form !da574b90
