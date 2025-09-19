@@ -73,6 +73,7 @@ class MeshtasticClient:
             self.interface = meshtastic_tcp.TCPInterface(
                 hostname=self.host, portNumber=4403, connectNow=True, debugOut=None
             )
+            logging.getLogger("meshtastic").setLevel(logging.INFO)
             pub.setNotificationFlags(all=False)
             pub.subscribe(self._onReceive, "meshtastic.receive")
             pub.subscribe(self._onPositionReceive, "meshtastic.receive.position")
@@ -102,7 +103,6 @@ class MeshtasticClient:
     def _onReceive(self, packet, interface):
         self.logger.debug("[Meshtastic] _onReceive")
         # Check if the packet contains a text message
-        # self.logger.debug("[Meshtastic] _on_receive")
         self.logger.debug(f"[Meshtastic] Received packet <{packet}>")
         if (
             "decoded" in packet
