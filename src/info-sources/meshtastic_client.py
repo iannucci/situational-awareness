@@ -14,59 +14,12 @@ from mattermost_client import MattermostClient
 
 DEFAULT_CFG = "/etc/situational-awareness/config.json"
 
-# {'num': 372355035,
-#  'user': {'id': '!ddec5cfb',
-#           'longName': 'W6EI South Court',
-#           'shortName': 'EI/S',
-#           'macaddr': '2Drd7Fz7',
-#           'hwModel': 'PORTDUINO'},
-#  'position': {'latitudeI': 374202655,
-#               'longitudeI': -1221206006,
-#               'altitude': 11,
-#               'time': 1756493982,
-#               'locationSource': 'LOC_INTERNAL',
-#               'latitude': 37.4202655,
-#               'longitude': -122.1206006},
-#  'snr': 7.0,
-#  'lastHeard': 1756493982,
-#  'deviceMetrics': {'batteryLevel': 101,
-#                    'channelUtilization': 19.92,
-#                    'airUtilTx': 2.6313055,
-#                    'uptimeSeconds': 2355},
-#  'isFavorite': True}
-# pprint.pp(interface.getMyNodeInfo())
-
-# {
-#     "id": "!ddec5cfb",
-#     "longName": "W6EI South Court",
-#     "shortName": "EI/S",
-#     "macaddr": "2Drd7Fz7",
-#     "hwModel": "PORTDUINO",
-# }
-# pprint.pp(interface.getMyUser())
-
-
-# {
-#     "channel": 0,
-#     "from": 3663154064,
-#     "hop_start": 3,
-#     "hops_away": 0,
-#     "id": 2026663140,
-#     "payload": {"text": "Test"},
-#     "rssi": -45,
-#     "sender": "!ddec5cfb",
-#     "snr": 7.25,
-#     "timestamp": 1756503807,
-#     "to": 4294967295,
-#     "type": "text",
-# }
-
 
 def loggerInfo(my_logger):
     for name, logger in logging.Logger.manager.loggerDict.items():
         if isinstance(logger, logging.Logger):
             my_logger.info(
-                f"🚨 [Meshtastic] Logger Name: {name}, Level: {logger.getEffectiveLevel()}"
+                f"🚨 [Meshtastic] Logger Name: {name}, Level: {logging.getLevelName(logger.getEffectiveLevel())}"
             )
 
 
@@ -114,7 +67,7 @@ class MeshtasticClient:
     def _onReceive(self, packet, interface):
         self.logger.info("🚨 [Meshtastic] _onReceive")
         self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
-        loggerInfo(self.logger)
+        # loggerInfo(self.logger)
         if (
             "decoded" in packet
             and "portnum" in packet["decoded"]
@@ -124,55 +77,63 @@ class MeshtasticClient:
                 text_message = packet["decoded"]["payload"].decode("utf-8")
                 # from_node = packet["from"]
                 from_id = packet["fromId"]  # from_id is of the form !da574b90
-                short_name, long_name = self._id_to_name(interface, from_id)
+                _, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
                 self.logger.info(
                     f"✅ [Meshtastic] Received message <{text_message}> from {callsign}"
                 )
                 self.callback(callsign, text_message)
 
-            except UnicodeDecodeError:
-                self.logger.info("[Meshtastic] Received a non-UTF-8 text message.")
-        # else:
-        #   Handle other types of packets or log them for debugging
-        #   print(f"Received non-text packet: {packet}")
+            except Exception as e:
+                self.logger.error(
+                    f"[Meshtastic] Error processing text message packet: {e}"
+                )
 
     def _onPositionReceive(self, packet, interface):
         self.logger.info("🚨 [Meshtastic] _onPositionReceive")
-        self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
-        loggerInfo(self.logger)
-        if "position" in packet:
-            pos = packet["position"]
-            from_id = packet["fromId"]  # from_id is of the form !da574b90
-            short_name, long_name = self._id_to_name(interface, from_id)
-            callsign = long_name.split()[0].upper()
-            lat = pos.get("latitude", None)
-            lon = pos.get("longitude", None)
-            alt = pos.get("altitude", None)
-            self.logger.info(
-                f"✅ [Meshtastic] Position update from {callsign}: lat={lat}, lon={lon}, alt={alt}"
-            )
-        # else:
-        #   Handle other types of packets or log them for debugging
-        #   print(f"Received non-position packet: {packet}")
+        # self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
+        # loggerInfo(self.logger)
+        if (
+            "decoded" in packet
+            and "portnum" in packet["decoded"]
+            and packet["decoded"]["portnum"] == "POSITION_APP"
+        ):
+            try:
+                pos = packet["decoded"]["position"]
+                from_id = packet["fromId"]  # from_id is of the form !da574b90
+                _, long_name = self._id_to_name(interface, from_id)
+                callsign = long_name.split()[0].upper()
+                lat = pos.get("latitude", None)
+                lon = pos.get("longitude", None)
+                alt = pos.get("altitude", None)
+                self.logger.info(
+                    f"✅ [Meshtastic] Position update from {callsign}: lat={lat}, lon={lon}, alt={alt}"
+                )
+            except Exception as e:
+                self.logger.error(f"[Meshtastic] Error processing position packet: {e}")
 
     def _onTelemetryReceive(self, packet, interface):
         self.logger.info("🚨 [Meshtastic] _onTelemetryReceive")
-        self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
-        loggerInfo(self.logger)
-        if "deviceMetrics" in packet:
-            metrics = packet["deviceMetrics"]
-            from_id = packet["fromId"]  # from_id is of the form !da574b90
-            short_name, long_name = self._id_to_name(interface, from_id)
-            callsign = long_name.split()[0].upper()
-            battery = metrics.get("batteryLevel", None)
-            uptime = metrics.get("uptimeSeconds", None)
-            self.logger.info(
-                f"✅ [Meshtastic] Telemetry update from {callsign}: battery={battery}, uptime={uptime}"
-            )
-        # else:
-        #   Handle other types of packets or log them for debugging
-        #   print(f"Received non-telemetry packet: {packet}")
+        # self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
+        # loggerInfo(self.logger)
+
+        if (
+            "decoded" in packet
+            and "portnum" in packet["decoded"]
+            and packet["decoded"]["portnum"] == "TELEMETRY_APP"
+        ):
+            try:
+                telemetry = packet["decoded"]["telemetry"]
+                from_id = packet["fromId"]  # from_id is of the form !da574b90
+                _, long_name = self._id_to_name(interface, from_id)
+                callsign = long_name.split()[0].upper()
+                battery = telemetry.get("batteryLevel", None)
+                uptime = telemetry.get("uptimeSeconds", None)
+                self.logger.info(
+                    f"✅ [Meshtastic] Telemetry update from {callsign}: battery={battery}, uptime={uptime}"
+                )
+            except Exception as e:
+                self.logger.error(f"[Meshtastic] Error processing position packet: {e}")
 
 
 def find_config_path(cli_path: str):
@@ -216,7 +177,7 @@ def main():
             meshtastic_config.get("host", ""), mattermost_client.callback, logger
         )
 
-        loggerInfo(logger)
+        # loggerInfo(logger)
 
         while True:
             time.sleep(1)

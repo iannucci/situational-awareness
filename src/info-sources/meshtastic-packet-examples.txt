@@ -1,0 +1,93 @@
+Telemetry
+{
+  'from': 3723255035, 
+  'to': 4294967295, 
+  'decoded': {
+	  'portnum': 'TELEMETRY_APP', 
+	  'payload': b'\r?\xe1\xcdh\x12\x15\x08e\x15\x00\x00\x00\x00\x1d\x00\x00\x00\x00%o\xa5#@(\xd8\xe5o', 
+	  'telemetry': {
+		  'time': 1758323007, 
+	    'deviceMetrics': {
+			  'batteryLevel': 101, 
+		    'voltage': 0.0, 
+		    'channelUtilization': 0.0, 
+		    'airUtilTx': 2.5569723, 
+		    'uptimeSeconds': 1831640
+		  }, 
+	    'raw': 
+	      time: 1758323007
+        device_metrics {
+          battery_level: 101
+          voltage: 0
+          channel_utilization: 0
+          air_util_tx: 2.55697227
+          uptime_seconds: 1831640
+        }
+    }
+	}, 
+  'id': 943425592, 
+  'rxTime': 1758323007, 
+  'hopLimit': 3, 
+  'priority': 'BACKGROUND', 
+  'raw': 
+    from: 3723255035
+    to: 4294967295
+    decoded {
+      portnum: TELEMETRY_APP
+      payload: "\r?\341\315h\022\025\010e\025\000\000\000\000\035\000\000\000\000%o\245#@(\330\345o"
+    }
+    id: 943425592
+    rx_time: 1758323007
+    hop_limit: 3
+    priority: BACKGROUND, 
+  'fromId': 
+  '!ddec5cfb', 
+  'toId': '^all'}
+
+
+Position
+{
+	'from': 3663154064, 
+  'to': 4294967295, 
+  'decoded': {
+	  'portnum': 'POSITION_APP', 
+	  'payload': b'\r\x89\xe2M\x16\x15\x84\xde5\xb7\x18\x07%\xf1\xdc\xcdh(\x03=\xf6\xdb\xcdh\x98\x01\x0c\xb8\x01 ', 
+	  'bitfield': 0, 
+	  'position': {'latitudeI': 374203017, 'longitudeI': -1221206396, 'altitude': 7, 'time': 1758321905, 'locationSource': 'LOC_EXTERNAL', 'timestamp': 1758321654, 'satsInView': 12, 'precisionBits': 32, 'raw': latitude_i: 374203017
+      longitude_i: -1221206396
+      altitude: 7
+      time: 1758321905
+      location_source: LOC_EXTERNAL
+      timestamp: 1758321654
+      sats_in_view: 12
+      precision_bits: 32, 
+      'latitude': 37.4203017, 
+      'longitude': -122.1206396
+    }
+	}, 
+  'id': 863901502, 
+  'rxTime': 1758321862, 
+  'rxSnr': 4.75, 
+  'hopLimit': 3, 
+  'rxRssi': -53, 
+  'hopStart': 3, 
+  'relayNode': 144, 
+  'raw': 
+    from: 3663154064
+    to: 4294967295
+    decoded {
+      portnum: POSITION_APP
+      payload: "\r\211\342M\026\025\204\3365\267\030\007%\361\334\315h(\003=\366\333\315h\230\001\014\270\001 "
+      bitfield: 0
+    }
+    id: 863901502
+    rx_time: 1758321862
+    rx_snr: 4.75
+    hop_limit: 3
+    rx_rssi: -53
+    hop_start: 3
+    relay_node: 144, 
+  'fromId': '!da574b90', 
+  'toId': '^all'
+}
+
