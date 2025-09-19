@@ -7,13 +7,13 @@ Telemetry
 	  'payload': b'\r?\xe1\xcdh\x12\x15\x08e\x15\x00\x00\x00\x00\x1d\x00\x00\x00\x00%o\xa5#@(\xd8\xe5o', 
 	  'telemetry': {
 		  'time': 1758323007, 
-	    'deviceMetrics': {
+	    	'deviceMetrics': {
 			  'batteryLevel': 101, 
-		    'voltage': 0.0, 
-		    'channelUtilization': 0.0, 
-		    'airUtilTx': 2.5569723, 
-		    'uptimeSeconds': 1831640
-		  }, 
+		    	'voltage': 0.0, 
+		    	'channelUtilization': 0.0, 
+		    	'airUtilTx': 2.5569723, 
+		    	'uptimeSeconds': 1831640
+			}, 
 	    'raw': 
 	      time: 1758323007
         device_metrics {

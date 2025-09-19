@@ -66,7 +66,7 @@ class MeshtasticClient:
 
     def _onReceive(self, packet, interface):
         self.logger.info("🚨 [Meshtastic] _onReceive")
-        self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
+        # self.logger.info(f"🚨 [Meshtastic] Received packet <{packet}>")
         # loggerInfo(self.logger)
         if (
             "decoded" in packet
@@ -123,7 +123,7 @@ class MeshtasticClient:
             and packet["decoded"]["portnum"] == "TELEMETRY_APP"
         ):
             try:
-                telemetry = packet["decoded"]["telemetry"]
+                telemetry = packet["decoded"]["telemetry"]["deviceMetrics"]
                 from_id = packet["fromId"]  # from_id is of the form !da574b90
                 _, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
