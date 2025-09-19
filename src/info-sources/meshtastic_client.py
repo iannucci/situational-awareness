@@ -173,9 +173,6 @@ def build_logger(level: str):
 
 
 def main():
-    logger.debug(
-        "🚨 [Meshtastic] Starting ------------------------------------------------------"
-    )
     ap = argparse.ArgumentParser(description="meshtastic-client")
     ap.add_argument(
         "--config",
