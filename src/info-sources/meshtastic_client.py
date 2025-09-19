@@ -2,7 +2,7 @@
 
 # Copyright © 2025 by Bob Iannucci.  All rights reserved worldwide.
 
-import meshtastic.tcp_interface as tcp
+import meshtastic.tcp_interface as meshtastic_tcp
 
 from pubsub import pub  # https://pypubsub.readthedocs.io/en/v4.0.3/
 import logging
@@ -70,10 +70,12 @@ class MeshtasticClient:
         self.interface = None
         # Establish a connection to the Meshtastic device
         try:
-            self.interface = tcp.TCPInterface(
-                hostname=self.host, portNumber=4403, connectNow=True
+            self.interface = meshtastic_tcp.TCPInterface(
+                hostname=self.host, portNumber=4403, connectNow=True, debugOut=None
             )
-            pub.subscribe(self._on_receive, "meshtastic.receive")
+            pub.subscribe(self._onReceive, "meshtastic.receive")
+            pub.subscribe(self._onPositionReceive, "meshtastic.receive.position")
+            pub.subscribe(self._onTelemetryReceive, "meshtastic.receive.telemetry")
             self.logger.info(
                 "[Meshtastic] Connected to Meshtastic device and listening for messages"
             )
@@ -96,7 +98,8 @@ class MeshtasticClient:
                 break
         return short_name, long_name
 
-    def _on_receive(self, packet, interface):
+    def _onReceive(self, packet, interface):
+        self.logger.debug("[Meshtastic] _onReceive")
         # Check if the packet contains a text message
         # self.logger.debug("[Meshtastic] _on_receive")
         self.logger.debug(f"[Meshtastic] Received packet <{packet}>")
@@ -121,6 +124,39 @@ class MeshtasticClient:
         # else:
         #   Handle other types of packets or log them for debugging
         #   print(f"Received non-text packet: {packet}")
+
+    def _onPositionReceive(self, packet, interface):
+        self.logger.debug("[Meshtastic] _onPositionReceive")
+        if "position" in packet:
+            pos = packet["position"]
+            from_id = packet["fromId"]  # from_id is of the form !da574b90
+            short_name, long_name = self._id_to_name(interface, from_id)
+            callsign = long_name.split()[0].upper()
+            lat = pos.get("latitude", None)
+            lon = pos.get("longitude", None)
+            alt = pos.get("altitude", None)
+            self.logger.info(
+                f"[Meshtastic] Position update from {callsign}: lat={lat}, lon={lon}, alt={alt}"
+            )
+        # else:
+        #   Handle other types of packets or log them for debugging
+        #   print(f"Received non-position packet: {packet}")
+
+    def _onTelemetryReceive(self, packet, interface):
+        self.logger.debug("[Meshtastic] _onTelemetryReceive")
+        if "deviceMetrics" in packet:
+            metrics = packet["deviceMetrics"]
+            from_id = packet["fromId"]  # from_id is of the form !da574b90
+            short_name, long_name = self._id_to_name(interface, from_id)
+            callsign = long_name.split()[0].upper()
+            battery = metrics.get("batteryLevel", None)
+            uptime = metrics.get("uptimeSeconds", None)
+            self.logger.info(
+                f"[Meshtastic] Telemetry update from {callsign}: battery={battery}, uptime={uptime}"
+            )
+        # else:
+        #   Handle other types of packets or log them for debugging
+        #   print(f"Received non-telemetry packet: {packet}")
 
 
 def find_config_path(cli_path: str):
