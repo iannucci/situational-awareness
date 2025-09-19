@@ -20,11 +20,25 @@ var paloAltoBoundary = {
 }
 
 const TILE_SERVER_URL = "http://pa-map-tiles.local.mesh/hot/{z}/{x}/{y}.png";
+
+// Computed in QGIS3
+const MINX = -122.20287715892179392;
+const MINY = 37.28906957101459341;
+const MAXX = -122.06984547161441412;
+const MAXY = 37.47855270053830878;
+
+const CENTERX = (minx + maxx) / 2;
+const CENTERY = (miny + maxy) / 2;
+
+const WIDTH = MAXX - MINX;
+const HEIGHT = MAXY - MINY;
+
 const PALO_ALTO_BOUNDING_BOX = {
-    center: [37.4419, -122.1430],
-    bounds: [[37.3894, -122.1965], [37.4944, -122.0895]],
+    center: [CENTERY, CENTERX],
+    bounds: [[MINY, MINX], [MAXY, MAXX]],
     zoom: 13
 };
+
 const API_BASE = "/api/v1";
 
 function initMap() {
