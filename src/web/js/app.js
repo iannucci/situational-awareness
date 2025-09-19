@@ -27,8 +27,8 @@ const MINY = 37.28906957101459341;
 const MAXX = -122.06984547161441412;
 const MAXY = 37.47855270053830878;
 
-const CENTERX = (minx + maxx) / 2;
-const CENTERY = (miny + maxy) / 2;
+const CENTERX = (MINX + MAXX) / 2;
+const CENTERY = (MINY + MAXY) / 2;
 
 const WIDTH = MAXX - MINX;
 const HEIGHT = MAXY - MINY;
