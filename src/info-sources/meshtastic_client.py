@@ -75,6 +75,8 @@ class MeshtasticClient:
             )
             logging.getLogger("meshtastic.tcp_interface").setLevel(logging.INFO)
             logging.getLogger("meshtastic-client").setLevel(logging.INFO)
+            logging.getLogger("meshtastic").setLevel(logging.INFO)
+            logging.getLogger("meshtastic_client").setLevel(logging.INFO)
             pub.setNotificationFlags(all=False)
             pub.subscribe(self._onReceive, "meshtastic.receive")
             pub.subscribe(self._onPositionReceive, "meshtastic.receive.position")
@@ -170,7 +172,7 @@ def find_config_path(cli_path: str):
 
 def build_logger(level: str):
     logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(message)s")
-    return logging.getLogger("meshtastic-client")
+    return logging.getLogger("meshtastic_client")
 
 
 def main():
@@ -188,7 +190,7 @@ def main():
     except Exception as e:
         print(f"Error loading config {config_path}: {e}")
         return
-    logger = build_logger(config.get("log_level", "DEBUG"))
+    logger = build_logger(config.get("log_level", "INFO"))
     logger.debug("✅ [Meshtastic] Logging is active")
 
     meshtastic_client = None
