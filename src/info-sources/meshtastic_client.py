@@ -73,6 +73,7 @@ class MeshtasticClient:
             self.interface = meshtastic_tcp.TCPInterface(
                 hostname=self.host, portNumber=4403, connectNow=True, debugOut=None
             )
+            pub.setNotificationFlags(all=False)
             pub.subscribe(self._onReceive, "meshtastic.receive")
             pub.subscribe(self._onPositionReceive, "meshtastic.receive.position")
             pub.subscribe(self._onTelemetryReceive, "meshtastic.receive.telemetry")
