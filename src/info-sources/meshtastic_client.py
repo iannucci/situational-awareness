@@ -73,20 +73,16 @@ class MeshtasticClient:
             self.interface = meshtastic_tcp.TCPInterface(
                 hostname=self.host, portNumber=4403, connectNow=True, debugOut=None
             )
-
-            logger_names = list(logging.root.manager.loggerDict.keys())
-            self.logger.info(f"[Meshtastic] Loggers: {logger_names}")
-
             # logging.getLogger("meshtastic.tcp_interface").setLevel(logging.INFO)
             pub.setNotificationFlags(all=False)
             pub.subscribe(self._onReceive, "meshtastic.receive")
             pub.subscribe(self._onPositionReceive, "meshtastic.receive.position")
             pub.subscribe(self._onTelemetryReceive, "meshtastic.receive.telemetry")
             self.logger.info(
-                "[Meshtastic] Connected to Meshtastic device and listening for messages"
+                "✅ [Meshtastic] Connected to Meshtastic device and listening for messages"
             )
         except Exception as e:
-            self.logger.error(f"[Meshtastic] Error connecting to device: {e}")
+            self.logger.error(f"❌ [Meshtastic] Error connecting to device: {e}")
             raise
 
     def close(self):
@@ -120,7 +116,7 @@ class MeshtasticClient:
                 short_name, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
                 self.logger.debug(
-                    f"[Meshtastic] Received message <{text_message}> from {callsign}"
+                    f"✅ [Meshtastic] Received message <{text_message}> from {callsign}"
                 )
                 self.callback(callsign, text_message)
 
@@ -141,7 +137,7 @@ class MeshtasticClient:
             lon = pos.get("longitude", None)
             alt = pos.get("altitude", None)
             self.logger.info(
-                f"[Meshtastic] Position update from {callsign}: lat={lat}, lon={lon}, alt={alt}"
+                f"✅ [Meshtastic] Position update from {callsign}: lat={lat}, lon={lon}, alt={alt}"
             )
         # else:
         #   Handle other types of packets or log them for debugging
@@ -157,7 +153,7 @@ class MeshtasticClient:
             battery = metrics.get("batteryLevel", None)
             uptime = metrics.get("uptimeSeconds", None)
             self.logger.info(
-                f"[Meshtastic] Telemetry update from {callsign}: battery={battery}, uptime={uptime}"
+                f"✅ [Meshtastic] Telemetry update from {callsign}: battery={battery}, uptime={uptime}"
             )
         # else:
         #   Handle other types of packets or log them for debugging
@@ -177,6 +173,9 @@ def build_logger(level: str):
 
 
 def main():
+    logger.debug(
+        "🚨 [Meshtastic] Starting ------------------------------------------------------"
+    )
     ap = argparse.ArgumentParser(description="meshtastic-client")
     ap.add_argument(
         "--config",
@@ -192,7 +191,7 @@ def main():
         print(f"Error loading config {config_path}: {e}")
         return
     logger = build_logger(config.get("log_level", "DEBUG"))
-    logger.debug("[Meshtastic] Logging is active")
+    logger.debug("✅ [Meshtastic] Logging is active")
 
     meshtastic_client = None
     mattermost_client = None
@@ -204,10 +203,12 @@ def main():
         meshtastic_client = MeshtasticClient(
             meshtastic_config.get("host", ""), mattermost_client.callback, logger
         )
+        logger_names = list(logging.root.manager.loggerDict.keys())
+        logger.info(f"🚨 [Meshtastic] Loggers: {logger_names}")
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        logger.info("\n[Meshtastic] Exiting.")
+        logger.info("\n🚨 [Meshtastic] Exiting.")
     finally:
         if meshtastic_client is not None:
             meshtastic_client.close()
