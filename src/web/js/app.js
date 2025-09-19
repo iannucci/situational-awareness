@@ -36,7 +36,7 @@ const HEIGHT = MAXY - MINY;
 const PALO_ALTO_BOUNDING_BOX = {
     center: [CENTERY, CENTERX],
     bounds: [[MINY, MINX], [MAXY, MAXX]],
-    zoom: 13
+    zoom: 12
 };
 
 const API_BASE = "/api/v1";
