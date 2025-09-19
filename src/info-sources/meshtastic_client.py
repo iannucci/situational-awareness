@@ -98,7 +98,8 @@ class MeshtasticClient:
 
     def _on_receive(self, packet, interface):
         # Check if the packet contains a text message
-        self.logger.debug("[Meshtastic] _on_receive")
+        # self.logger.debug("[Meshtastic] _on_receive")
+        self.logger.debug(f"[Meshtastic] Received packet <{packet}>")
         if (
             "decoded" in packet
             and "portnum" in packet["decoded"]

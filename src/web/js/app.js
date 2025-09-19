@@ -10,6 +10,7 @@
 let map;
 let incidentLayer, assetLayer;
 
+// Thanks to Jessica.Setiawan@paloalto.gov for the Palo Alto boundary shapefile
 var paloAltoBoundary = {
     "type": "FeatureCollection",
     "name": "Palo Alto",
