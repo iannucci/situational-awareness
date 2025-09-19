@@ -35,7 +35,7 @@ function initMap() {
         attributionControl: true
     });
     
-    map.setMaxBounds(PALO_ALTO_BOUNDING_BOX.bounds);
+    // map.setMaxBounds(PALO_ALTO_BOUNDING_BOX.bounds);
     
     const tileLayer = L.tileLayer(TILE_SERVER_URL, {
         maxZoom: 18,
@@ -43,12 +43,13 @@ function initMap() {
     });
     tileLayer.addTo(map);
     
-    const boundaryRectangle = L.rectangle(PALO_ALTO_BOUNDING_BOX.bounds, {
-        color: "#3498db",
-        weight: 2,
-        fillOpacity: 0.1,
-        dashArray: "10, 10"
-    }).addTo(map);
+    // const boundaryRectangle = L.rectangle(PALO_ALTO_BOUNDING_BOX.bounds, {
+    //     color: "#3498db",
+    //     weight: 2,
+    //     fillOpacity: 0.1,
+    //     dashArray: "10, 10"
+    // }).addTo(map);
+
     boundaryRectangle.bindPopup("<b>Palo Alto Service Area</b><br/>Situational Awareness Coverage Zone");
 
     L.geoJSON(paloAltoBoundary).addTo(map);
