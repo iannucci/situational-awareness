@@ -142,19 +142,19 @@ fi
 echo -e "${BLUE}Installing system packages...${NC}"
 if [[ -f /etc/debian_version ]]; then
     # Ubuntu/Debian - Install PostgreSQL 16 (more stable than 17)
-    apt update
+    apt update -qq
     rm -f /usr/share/keyrings/postgresql-archive-keyring.gpg
-    apt install -y wget ca-certificates
+    apt install -qq -y wget ca-certificates
     
     # Add PostgreSQL official APT repository
     wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
     
-    apt update
-    apt install -y postgresql-16 postgresql-client-16 postgresql-16-postgis-3 nodejs npm nginx git curl
+    apt update -qq
+    apt install -qq -y postgresql-16 postgresql-client-16 postgresql-16-postgis-3 nodejs npm nginx git curl
     
     # Install TimescaleDB (optional)
-    apt install -y timescaledb-2-postgresql-16 || echo -e "${YELLOW}TimescaleDB not available, continuing without it${NC}"
+    apt install -qq -y timescaledb-2-postgresql-16 || echo -e "${YELLOW}TimescaleDB not available, continuing without it${NC}"
     
 elif [[ -f /etc/redhat-release ]]; then
     # RHEL/CentOS/Fedora
@@ -257,7 +257,7 @@ if [[ ! -f "package.json" ]]; then
     exit 1
 fi
 
-npm install --omit=dev
+npm install --omit=dev --no-fund --silent
 if [[ $? -ne 0 ]]; then
     echo -e "${RED}Error: npm install failed${NC}"
     exit 1
