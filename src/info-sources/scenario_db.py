@@ -183,7 +183,7 @@ class trackedAsset:
 				ON CONFLICT (asset_id) DO UPDATE SET
                 location = ST_SetSRID(ST_MakePoint(%s, %s),
                 status = %s,
-                condition_type = %s
+                condition_type = %s,
                 condition_severity = %s;
 				""",
                 (

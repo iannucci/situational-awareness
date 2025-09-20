@@ -193,7 +193,7 @@ WHERE i.status IN ('Active', 'In Progress');
 -- Create completion notification
 DO $$
 BEGIN
-    RAISE NOTICE '=======================================================';
+    RAISE NOTICE '====================================================';
     RAISE NOTICE 'Situational Awareness Database schema setup complete';
-    RAISE NOTICE '=======================================================';
+    RAISE NOTICE '====================================================';
 END $$;
