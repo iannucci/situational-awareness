@@ -44,7 +44,7 @@ class ScenarioDB:
             self.conn = None
         else:
             print("✅ Database connection established")
-        self.assets_config = CF("assets", args.assets)
+        self.assets_config = CF.Config("assets", args.assets).configs["assets"]
         self._load_assets_from_file()
 
     def close(self):
@@ -242,7 +242,7 @@ def main():
     )
     args = ap.parse_args()
 
-    config = CF.Config("main", args.config)
+    config = CF.Config("main", args.config).configs["main"]
 
     dbconfig = config.get("database", None)
     if not dbconfig:

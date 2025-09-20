@@ -204,7 +204,7 @@ def main():
     )
     args = ap.parse_args()
 
-    config = CF.Config("main", args.config)
+    config = CF.Config("main", args.config).configs["main"]
     logger = build_logger(config.get("log_level", "INFO"))
     logger.info("✅ [Meshtastic] Logging is active")
 

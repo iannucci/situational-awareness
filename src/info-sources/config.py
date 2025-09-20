@@ -41,7 +41,7 @@ class Config:
             with open(config_path, "r") as f:
                 config = json.load(f)
             self._configs[key] = config
-            print("✅ [Config] <{key}> loaded successfully")
+            print(f"✅ [Config] <{key}> loaded successfully")
         except FileNotFoundError:
             print(f"❌ Error: The file '{config_path}' was not found.")
         except json.JSONDecodeError:
