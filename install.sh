@@ -26,8 +26,8 @@ DB_NAME='situational_awareness'
 MESHTASTIC_PYTHON='meshtastic_client.py'
 MESHTASTIC='meshtastic-client'
 
-SCENARIO_PYTHON='scenario_setup.py'
-SCENARIO='scenario-setup'
+SCENARIO_PYTHON='scenario_db.py'
+SCENARIO='scenario-example'
 
 echo -e "${BLUE}🚨 Situational Awareness System Installer 🚨${NC}"
 
@@ -542,7 +542,7 @@ sudo systemctl enable $MESHTASTIC.service
 sudo systemctl start $MESHTASTIC.service
 
 echo -e "${BLUE}Creating $SCENARIO script...${NC}"
-cat > "$APP_DIR/$SCENARIO.sh" << SCENARIOSETUPSH
+cat > "$APP_DIR/$SCENARIO.sh" << SCENARIOSH
 #!/bin/bash
 
 RED='\033[0;31m'
@@ -577,7 +577,7 @@ else
     pip3 install --quiet -r "$APP_DIR/requirements.txt"
     python3 $APP_DIR/src/info-sources/$SCENARIO_PYTHON --config $ETC_DIR/config.json --assets \$ASSETS_FILE
 fi
-SCENARIOSETUPSH
+SCENARIOSH
 
 sudo chmod a+x "$APP_DIR/$SCENARIO.sh"
 
