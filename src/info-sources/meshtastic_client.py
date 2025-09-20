@@ -138,8 +138,10 @@ class MeshtasticClient:
         ):
             try:
                 telemetry = packet["decoded"]["telemetry"]
-                deviceMetrics = telemetry["deviceMetrics"]
-                from_id = packet["fromId"]  # from_id is of the form !da574b90
+                deviceMetrics = telemetry.get("deviceMetrics", None)
+                if deviceMetrics is None:
+                    return
+                from_id = packet.get("fromId", None)  # from_id is of the form !da574b90
                 _, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
                 battery = deviceMetrics.get("batteryLevel", 0)
