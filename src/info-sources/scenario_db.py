@@ -58,8 +58,8 @@ class ScenarioDB:
             self.conn.close()
             self.logger.info("✅ [Database] Connection closed")
 
-    def load_assets(self, assets):
-        for asset in assets:  # self.assets_config.get("assets", []):
+    def load_assets(self, assets_list):
+        for asset in assets_list:  # self.assets_config.get("assets", []):
             try:
                 type_code = asset.get("type", "").upper()
                 if type_code not in self.type_codes_set:

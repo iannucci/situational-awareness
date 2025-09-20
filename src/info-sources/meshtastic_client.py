@@ -212,8 +212,9 @@ def main():
     database = None
 
     try:
+        assets_list = assets_config.get("assets", [])
         database = DB.ScenarioDB(config)
-        database.load_assets(assets_config)
+        database.load_assets(assets_list)
         mattermost_client = MattermostClient(config)
         meshtastic_client = MeshtasticClient(
             config, mattermost_client.callback, database
