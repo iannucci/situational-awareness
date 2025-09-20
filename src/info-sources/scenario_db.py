@@ -69,7 +69,7 @@ class ScenarioDB:
                         organization="OES",
                         icon=f"{type_code.lower()}",  # .png, .svg, ...  Needs to be in the web/assets/icons directory
                     )
-                    new_type.insert(self.database)
+                    new_type.insert(self)
                     self.type_list.append(new_type)
                     self.type_codes_set.add(type_code)
                     self.logger.info(f"🔖 [Database] Found asset type: {type_code}")
