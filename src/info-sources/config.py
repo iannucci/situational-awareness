@@ -51,7 +51,7 @@ class Config:
         except Exception as e:
             print(f"❌ An unexpected error occurred: {e} while loading configuration")
 
-    def configs(self):
+    def configs(self) -> dict:
         if not hasattr(self, "classes"):
             raise ValueError("❌ Configuration singleton has not been initialized.")
         else:
