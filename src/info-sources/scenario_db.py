@@ -126,6 +126,7 @@ class trackedAssetType:
         self.type_name = type_name
         self.organization = organization
         self.icon = icon
+        self.logger = build_logger(logging.INFO)
 
     def insert(self, database):
         db_cursor = database.cursor
@@ -158,13 +159,13 @@ class trackedAssetType:
 
 class trackedAsset:
     def __init__(
-        self, asset_id, type_code, tactical_call, location, description, logger, url=""
+        self, asset_id, type_code, tactical_call, location, description, url=""
     ):
         self.asset_id = asset_id
         self.type_code = type_code
         self.tactical_call = tactical_call
         self.description = description
-        self.logger = logger
+        self.logger = build_logger(logging.INFO)
         self.location = location
         self.url = url
         self.condition = trackedAssetCondition()
