@@ -48,15 +48,15 @@ class ScenarioDB:
             )
             self.cursor = self.conn.cursor()
         except psycopg2.OperationalError as e:
-            self.logger.info(f"❌ Unable to connect to the database: {e}")
+            self.logger.info(f"❌ [Database] Unable to connect to the database: {e}")
             self.conn = None
         else:
-            self.logger.info("✅ Database connection established")
+            self.logger.info("✅ [Database] Connection established")
 
     def close(self):
         if self.conn:
             self.conn.close()
-            self.logger.info("✅ Database connection closed")
+            self.logger.info("✅ [Database] Connection closed")
 
     def load_assets(self, assets):
         for asset in assets:  # self.assets_config.get("assets", []):
@@ -72,7 +72,7 @@ class ScenarioDB:
                     new_type.insert(self.database)
                     self.type_list.append(new_type)
                     self.type_codes_set.add(type_code)
-                    self.logger.info(f"🔖 Found asset type: {type_code}")
+                    self.logger.info(f"🔖 [Database] Found asset type: {type_code}")
 
                 asset_obj = None
                 match type_code:
@@ -83,7 +83,7 @@ class ScenarioDB:
                         asset_id = asset.get("asset_id", f"BRIDGE-{lat}-{lon}")
                         if lat is None or lon is None:
                             self.logger.info(
-                                f"❌ Invalid location data for bridge: {location}"
+                                f"❌ [Database] Invalid location data for bridge: {location}"
                             )
                             continue
                         # asset_id, tactical_call, description, location, url="")
@@ -100,11 +100,15 @@ class ScenarioDB:
                 if asset_obj.update(self.database):  # returns False on failure
                     # Add it to the local asset cache
                     self.assets_dict[asset_id] = asset_obj
-                    self.logger.info(f"✅ Loaded asset: {type_code}")
+                    self.logger.info(f"✅ [Database] Loaded asset: {type_code}")
                 else:
-                    self.logger.info(f"❌ Failed to add asset {asset} to database")
+                    self.logger.info(
+                        f"❌ [Database] Failed to add asset {asset} to database"
+                    )
             except Exception as e:
-                self.logger.info(f"❌ Failed to add asset {asset} to database: {e}")
+                self.logger.info(
+                    f"❌ [Database] Failed to add asset {asset} to database: {e}"
+                )
 
 
 class trackedAssetCondition:
@@ -125,7 +129,9 @@ class trackedAssetType:
     def insert(self, database):
         db_cursor = database.cursor
         if not db_cursor:
-            self.logger.info("❌ No database cursor available for insert operation.")
+            self.logger.info(
+                "❌ [Database] No database cursor available for insert operation."
+            )
             return
         try:
             db_cursor.execute(
@@ -142,9 +148,11 @@ class trackedAssetType:
                 ),
             )
             database.conn.commit()
-            self.logger.info(f"✅ Inserted asset type: {self.type_name}")
+            self.logger.info(f"✅ [Database] Inserted asset type: {self.type_name}")
         except Exception as e:
-            self.logger.info(f"❌ Error inserting asset type {self.type_name}: {e}")
+            self.logger.info(
+                f"❌ [Database] Error inserting asset type {self.type_name}: {e}"
+            )
 
 
 class trackedAsset:
@@ -165,7 +173,9 @@ class trackedAsset:
     def update(self, database):
         db_cursor = database.cursor
         if not db_cursor:
-            self.logger.info("❌ No database cursor available for update operation.")
+            self.logger.info(
+                "❌ [Database] No database cursor available for update operation."
+            )
             return
         try:
             rc = db_cursor.execute(
@@ -209,9 +219,11 @@ class trackedAsset:
             )
 
             database.conn.commit()
-            self.logger.info(f"✅ Updated asset: {self.description}")
+            self.logger.info(f"✅ [Database] Updated asset: {self.description}")
         except Exception as e:
-            self.logger.info(f"❌ Error inserting asset {self.description}: {e}")
+            self.logger.info(
+                f"❌ [Database] Error inserting asset {self.description}: {e}"
+            )
             return False
         return True
 
@@ -255,14 +267,10 @@ def main():
 
     dbconfig = config.get("database", None)
     if not dbconfig:
-        print("❌ Database configuration is missing in the config file.")
+        logger.info(
+            "❌ [Database] Database configuration is missing in the config file."
+        )
 
     database = ScenarioDB(config)
-    #     dbconfig.get("dbname"),
-    #     dbconfig.get("user"),
-    #     dbconfig.get("host"),
-    #     dbconfig.get("password"),
-    #     dbconfig.get("port"),
-    # )
 
     database.close()

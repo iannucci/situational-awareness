@@ -211,12 +211,6 @@ def main():
 
     try:
         database = DB.ScenarioDB(config)
-        #     database_config.get("dbname"),
-        #     database_config.get("user"),
-        #     database_config.get("host"),
-        #     database_config.get("password"),
-        #     database_config.get("port"),
-        # )
         database.load_assets(assets_config)
         mattermost_client = MattermostClient(config)
         meshtastic_client = MeshtasticClient(
