@@ -142,8 +142,8 @@ class MeshtasticClient:
                 from_id = packet["fromId"]  # from_id is of the form !da574b90
                 _, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
-                battery = deviceMetrics.get("batteryLevel", None)
-                uptime = deviceMetrics.get("uptimeSeconds", None)
+                battery = deviceMetrics.get("batteryLevel", 0)
+                uptime = deviceMetrics.get("uptimeSeconds", 0)
                 self.logger.info(
                     f"✅ [Meshtastic] Telemetry update from {callsign}: battery={battery}, uptime={uptime}"
                 )
