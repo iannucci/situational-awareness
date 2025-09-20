@@ -32,14 +32,16 @@ def singleton(cls):
 @singleton
 class Config:
     def __init__(self, key, config_file_name):
+        config = {}
         if not hasattr(self, "classes"):
             self._configs = {}
         try:
             config_path = config_path(config_file_name)
+            print(f"🚨 [Config] Path: {config_path}")
             with open(config_path, "r") as f:
                 config = json.load(f)
             self._configs[key] = config
-            print("✅ Configuration <{key}> loaded successfully")
+            print("✅ [Config] <{key}> loaded successfully")
         except FileNotFoundError:
             print(f"❌ Error: The file '{config_path}' was not found.")
         except json.JSONDecodeError:
