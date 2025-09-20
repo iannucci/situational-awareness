@@ -102,9 +102,9 @@ class ScenarioDB:
                     self.assets_dict[asset_id] = asset_obj
                     self.logger.info(f"✅ Loaded asset: {type_code}")
                 else:
-                    self.logger.info("❌ Failed to add asset {asset} to database")
+                    self.logger.info(f"❌ Failed to add asset {asset} to database")
             except Exception as e:
-                self.logger.info("❌ Failed to add asset {asset} to database: {e}")
+                self.logger.info(f"❌ Failed to add asset {asset} to database: {e}")
 
 
 class trackedAssetCondition:
