@@ -97,14 +97,15 @@ class ScenarioDB:
                     case _:
                         pass
                 # Add it to the database
-                if asset_obj.update(self.database):  # returns False on failure
-                    # Add it to the local asset cache
-                    self.assets_dict[asset_id] = asset_obj
-                    self.logger.info(f"✅ [Database] Loaded asset: {type_code}")
-                else:
-                    self.logger.info(
-                        f"❌ [Database] Failed to add asset {asset} to database"
-                    )
+                if asset_obj is not None:
+                    if asset_obj.update(self.database):  # returns False on failure
+                        # Add it to the local asset cache
+                        self.assets_dict[asset_id] = asset_obj
+                        self.logger.info(f"✅ [Database] Loaded asset: {type_code}")
+                    else:
+                        self.logger.info(
+                            f"❌ [Database] Failed to add asset {asset} to database"
+                        )
             except Exception as e:
                 self.logger.info(
                     f"❌ [Database] Failed to add asset {asset} to database: {e}"

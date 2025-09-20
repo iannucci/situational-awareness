@@ -201,9 +201,11 @@ def main():
     config_repo.load("assets", args.assets)
     config = config_repo.config("main")
     assets_config = config_repo.config("assets")
-    # database_config = config.get("database", {})
+
     logger = build_logger(config["meshtastic"].get("log_level", "INFO"))
     logger.info("✅ [Meshtastic] Logging is active")
+
+    logger.info(assets_config)
 
     meshtastic_client = None
     mattermost_client = None
