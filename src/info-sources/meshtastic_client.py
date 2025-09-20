@@ -6,14 +6,12 @@ import meshtastic.tcp_interface as meshtastic_tcp
 
 from pubsub import pub  # https://pypubsub.readthedocs.io/en/v4.0.3/
 import logging
-import os
+import config as CF
 import argparse
-import json
 import time
 from mattermost_client import MattermostClient
 import pprint
-
-DEFAULT_CFG = "/etc/situational-awareness/config.json"
+import scenario_db as DB
 
 
 def loggerInfo(my_logger):
@@ -25,15 +23,30 @@ def loggerInfo(my_logger):
 
 
 class MeshtasticClient:
-    def __init__(self, host, callback, logger):
-        self.host = host
-        self.callback = callback
+    def __init__(self, config, args, mattermost_callback, logger):
+        self.config = config
+        self.args = args
+        self.meshtastic_config = config.get("meshtastic", None)
+        self.database_config = config.get("database", None)
+        self.meshtastic_host = self.meshtastic_config.get("host", "")
+        self.mattermost_callback = mattermost_callback
         self.logger = logger
-        self.interface = None
+        self.meshtastic_interface = None
+        self.database = DB.ScenarioDB(
+            self.database_config.get("dbname"),
+            self.database_config.get("user"),
+            self.database_config.get("host"),
+            self.database_config.get("password"),
+            self.args,
+            self.database_config.get("port"),
+        )
         # Establish a connection to the Meshtastic device
         try:
-            self.interface = meshtastic_tcp.TCPInterface(
-                hostname=self.host, portNumber=4403, connectNow=True, debugOut=None
+            self.meshtastic_interface = meshtastic_tcp.TCPInterface(
+                hostname=self.meshtastic_host,
+                portNumber=4403,
+                connectNow=True,
+                debugOut=None,
             )
             logging.getLogger("meshtastic.tcp_interface").setLevel(logging.INFO)
             logging.getLogger("meshtastic-client").setLevel(logging.INFO)
@@ -51,7 +64,8 @@ class MeshtasticClient:
             raise
 
     def close(self):
-        self.interface.close()
+        self.database.close()
+        self.meshtastic_interface.close()
 
     # Translates a node ID into its short name and long name
     def _id_to_name(self, interface, id):
@@ -88,7 +102,7 @@ class MeshtasticClient:
                     "callsign": callsign,
                     "message": text_message,
                 }
-                self.callback(callback_data)
+                self.mattermost_callback(callback_data)
             except Exception as e:
                 self.logger.error(
                     f"❌ [Meshtastic] Error processing text message packet: {e}"
@@ -121,7 +135,7 @@ class MeshtasticClient:
                     "longitude": lon,
                     "altitude": alt,
                 }
-                self.callback(callback_data)
+                self.mattermost_callback(callback_data)
             except Exception as e:
                 self.logger.error(
                     f"❌ [Meshtastic] Error processing position packet: {e}"
@@ -155,7 +169,7 @@ class MeshtasticClient:
                     "battery": battery,
                     "uptime": uptime,
                 }
-                self.callback(callback_data)
+                self.mattermost_callback(callback_data)
             except Exception as e:
                 pretty_packet = pprint.pformat(packet, indent=2)
                 self.logger.error(
@@ -163,18 +177,19 @@ class MeshtasticClient:
                 )
 
 
-def find_config_path(cli_path: str):
-    cwd_cfg = os.path.abspath(os.path.join(os.getcwd(), "config.json"))
-    if os.path.exists(cwd_cfg):
-        return cwd_cfg
-    return cli_path
-
-
 def build_logger(level: str):
     logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(message)s")
     return logging.getLogger("meshtastic_client")
 
 
+DEFAULT_CFG = "/etc/situational-awareness/config.json"
+DEFAULT_ASSETS = "/etc/situational-awareness/assets.json"
+
+
+# This file is normally invoked at installation time by a script created in the installer.
+#
+# When invoked, pass the --config and --assets parameters, typically pointing to
+# /etc/{installation-name}/config.json and /etc/{installation-name}/assets.json
 def main():
     ap = argparse.ArgumentParser(description="meshtastic-client")
     ap.add_argument(
@@ -182,14 +197,14 @@ def main():
         default=DEFAULT_CFG,
         help=f"Path to config file (default: {DEFAULT_CFG})",
     )
+    ap.add_argument(
+        "--assets",
+        default=DEFAULT_ASSETS,
+        help=f"Path to assets file (default: {DEFAULT_ASSETS})",
+    )
     args = ap.parse_args()
-    config_path = find_config_path(args.config)
-    try:
-        with open(config_path, "r", encoding="utf-8") as config_file:
-            config = json.load(config_file)
-    except Exception as e:
-        print(f"❌ [Meshtastic] Error loading config {config_path}: {e}")
-        return
+
+    config = CF.Config("main", args.config)
     logger = build_logger(config.get("log_level", "INFO"))
     logger.info("✅ [Meshtastic] Logging is active")
 
@@ -197,11 +212,9 @@ def main():
     mattermost_client = None
 
     try:
-        meshtastic_config = config.get("meshtastic", {})
-        mattermost_config = config.get("mattermost", {})
-        mattermost_client = MattermostClient(mattermost_config, logger)
+        mattermost_client = MattermostClient(config, logger)
         meshtastic_client = MeshtasticClient(
-            meshtastic_config.get("host", ""), mattermost_client.callback, logger
+            config, args, mattermost_client.callback, logger
         )
 
         # loggerInfo(logger)

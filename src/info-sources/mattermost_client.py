@@ -7,13 +7,15 @@ from mattermostdriver import Driver
 
 class MattermostClient:
     def __init__(self, config, logger):
-        self.host = config.get("host", "")
-        self.scheme = config.get("scheme", "http")
-        self.port = int(config.get("port", 80))
-        self.basepath = config.get("basepath", "/api/v4").rstrip("/")
-        self.team = config.get("team", "")
-        self.admin_token = config.get("admin-token", "")
-        self.users = config.get("users", [])
+        self.config = config
+        self.mattermost_config = config.get("mattermost", {})
+        self.host = self.mattermost_config.get("host", "")
+        self.scheme = self.mattermost_config.get("scheme", "http")
+        self.port = int(self.mattermost_config.get("port", 80))
+        self.basepath = self.mattermost_config.get("basepath", "/api/v4").rstrip("/")
+        self.team = self.mattermost_config.get("team", "")
+        self.admin_token = self.mattermost_config.get("admin-token", "")
+        self.users = self.mattermost_config.get("users", [])
         self.mattermost_login_config = {
             "url": self.host,
             "token": self.admin_token,

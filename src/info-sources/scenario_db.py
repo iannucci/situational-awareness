@@ -4,21 +4,36 @@
 
 # Scenario database operations
 
-import json
 import psycopg2
-import os
+import config as CF
 import argparse
 
 
+def singleton(cls):
+    instances = {}
+
+    def get_instance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+
+    return get_instance
+
+
+@singleton
 class ScenarioDB:
-    def __init__(self, dbname, user, host, password, port=5432):
+    def __init__(self, dbname, user, host, password, args, port=5432):
         self.dbname = dbname
         self.user = user
         self.host = host
         self.password = password
         self.port = port
+        self.args = args
         self.conn = None
         self.cursor = None
+        self.assets_dict = {}
+        self.type_codes_set = set()
+        self.type_list = []
         try:
             self.conn = psycopg2.connect(
                 f"dbname={dbname} user={user} host={host} password={password} port={port}"
@@ -29,11 +44,59 @@ class ScenarioDB:
             self.conn = None
         else:
             print("✅ Database connection established")
+        self.assets_config = CF("assets", args.assets)
+        self._load_assets_from_file()
 
     def close(self):
         if self.conn:
             self.conn.close()
             print("✅ Database connection closed")
+
+    def _load_assets_from_file(self):
+        for asset in self.assets_config.get("assets", []):
+            try:
+                type_code = asset.get("type", "").upper()
+                if type_code not in self.type_codes_set:
+                    new_type = trackedAssetType(
+                        type_code=type_code,
+                        type_name=type_code.replace("_", " ").title(),
+                        organization="OES",
+                        icon=f"{type_code.lower()}",  # .png, .svg, ...  Needs to be in the web/assets/icons directory
+                    )
+                    new_type.insert(self.database)
+                    self.type_list.append(new_type)
+                    self.type_codes_set.add(type_code)
+                    print(f"🔖 Found asset type: {type_code}")
+
+                asset_obj = None
+                match type_code:
+                    case 'BRIDGE':
+                        location = asset.get("location", {})
+                        lat = location.get("lat")
+                        lon = location.get("lon")
+                        asset_id = asset.get("asset_id", f"BRIDGE-{lat}-{lon}")
+                        if lat is None or lon is None:
+                            print(f"❌ Invalid location data for bridge: {location}")
+                            continue
+                        # asset_id, tactical_call, description, location, url="")
+                        asset_obj = bridgeAsset(
+                            asset_id,
+                            asset_id,
+                            description=asset.get("description", ""),
+                            location={"lat": lat, "lon": lon},
+                            url=asset.get("url", ""),
+                        )
+                    case _:
+                        pass
+                # Add it to the database
+                if asset_obj.update(self.database): # returns False on failure
+                    # Add it to the local asset cache
+                    self.assets_dict[asset_id]=asset_obj
+                    print(f"✅ Loaded asset: {type_code}")
+                else:
+                    print("❌ Failed to add asset {asset} to database")
+            except Exception as e:
+                print("❌ Failed to add asset {asset} to database: {e}")
 
 
 class trackedAssetCondition:
@@ -96,7 +159,7 @@ class trackedAsset:
             print("❌ No database cursor available for update operation.")
             return
         try:
-            db_cursor.execute(
+            rc = db_cursor.execute(
                 """
 				INSERT INTO tracked_assets (asset_id, type_code, tactical_call, description, location, status, url, condition_type, condition_severity)
 				VALUES (%s, %s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s, %s)
@@ -116,6 +179,10 @@ class trackedAsset:
                 ),
             )
 
+            if rc is None:
+                # DO NOTHING was triggered
+                return False
+
             db_cursor.execute(
                 """
 				INSERT INTO tracked_asset_locations (asset_id, activity, location, status, condition_type, condition_severity)
@@ -124,8 +191,8 @@ class trackedAsset:
                 (
                     self.asset_id,
                     self.activity,
-                    location["lon"],
-                    location["lat"],
+                    self.location["lon"],
+                    self.location["lat"],
                     self.status,
                     self.condition.type,
                     self.condition.severity,
@@ -136,58 +203,8 @@ class trackedAsset:
             print(f"✅ Updated asset: {self.description}")
         except Exception as e:
             print(f"❌ Error inserting asset {self.description}: {e}")
-
-    # def move(self, database, activity, location, status, condition):
-    #     self.activity = activity
-    #     self.location = location
-    #     self.status = status
-    #     self.condition = condition
-    #     print(
-    #         f"🔄 Moving asset: {self.asset_id} to {location} with activity {activity}"
-    #     )
-    #     db_cursor = database.cursor
-    #     if not db_cursor:
-    #         print("❌ No database cursor available for move operation.")
-    #         return
-    #     try:
-    #         db_cursor.execute(
-    #             """
-
-
-# 			UPDATE tracked_assets
-# 			SET activity = %s, location = ST_SetSRID(ST_MakePoint(%s, %s), 4326), status = %s, condition_type = %s, condition_severity = %s, updated_at = NOW()
-# 			WHERE asset_id = %s;
-# 			""",
-#             (
-#                 activity,
-#                 location["lon"],
-#                 location["lat"],
-#                 status,
-#                 condition.type,
-#                 condition.severity,
-#                 self.asset_id,
-#             ),
-#         )
-#         db_cursor.execute(
-#             """
-# 			INSERT INTO tracked_asset_locations (asset_id, activity, location, status, condition_type, condition_severity)
-# 			VALUES (%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s);
-# 			""",
-#             (
-#                 self.asset_id,
-#                 activity,
-#                 location["lon"],
-#                 location["lat"],
-#                 status,
-#                 condition.type,
-#                 condition.severity,
-#             ),
-#         )
-
-#         database.conn.commit()
-#         print(f"✅ Moved asset: {self.description}")
-#     except Exception as e:
-#         print(f"❌ Error moving asset {self.description}: {e}")
+            return False
+        return True
 
 
 class bridgeAsset(trackedAsset):
@@ -195,97 +212,20 @@ class bridgeAsset(trackedAsset):
         super().__init__(asset_id, "BRIDGE", tactical_call, description, location, url)
 
 
-def find_config_path(cli_path: str):
-    cwd_cfg = os.path.abspath(os.path.join(os.getcwd(), "config.json"))
-    if os.path.exists(cwd_cfg):
-        return cwd_cfg
-    return cli_path
-
-
-def load_config(args):
-    config = {}
-    try:
-        config_path = find_config_path(args.config)
-        with open(config_path, "r") as f:
-            config = json.load(f)
-        print("✅ Configuration data loaded successfully")
-    except FileNotFoundError:
-        print(f"❌ Error: The file '{config_path}' was not found.")
-    except json.JSONDecodeError:
-        print(
-            f"❌ Error: Could not decode JSON from '{config_path}'. Check file format."
-        )
-    except Exception as e:
-        print(f"❌ An unexpected error occurred: {e} while loading configuration")
-    return config
-
-
-def load_assets_config(args):
-    assets_config = {}
-    try:
-        assets_path = find_config_path(args.assets)
-        with open(assets_path, "r") as f:
-            assets_config = json.load(f)
-        print("✅ Fixed asset data loaded successfully")
-    except FileNotFoundError:
-        print(f"❌ Error: The file '{assets_path}' was not found.")
-    except json.JSONDecodeError:
-        print(
-            f"❌ Error: Could not decode JSON from '{assets_path}'. Check file format."
-        )
-    except Exception as e:
-        print(f"❌ An unexpected error occurred: {e} while loading assets")
-    return assets_config
-
-
-def load_assets(assets_config, database):
-    asset_list = []
-    type_codes_set = set()
-    type_list = []
-
-    for asset in assets_config.get("assets", []):
-
-        type_code = asset.get("type", "").upper()
-        if type_code not in type_codes_set:
-            new_type = trackedAssetType(
-                type_code=type_code,
-                type_name=type_code.replace("_", " ").title(),
-                organization="OES",
-                icon=f"{type_code.lower()}",  # .png, .svg, ...  Needs to be in the web/assets/icons directory
-            )
-            new_type.insert(database)
-            type_list.append(new_type)
-            type_codes_set.add(type_code)
-            print(f"🔖 Found asset type: {type_code}")
-
-        if type_code != "BRIDGE":
-            continue
-        location = asset.get("location", {})
-        lat = location.get("lat")
-        lon = location.get("lon")
-        asset_id = asset.get("asset_id", f"BRIDGE-{lat}-{lon}")
-        if lat is None or lon is None:
-            print(f"❌ Invalid location data for bridge: {location}")
-            continue
-        # asset_id, tactical_call, description, location, url="")
-        bridge = bridgeAsset(
-            asset_id,
-            asset_id,
-            description=asset.get("description", ""),
-            location={"lat": lat, "lon": lon},
-            url=asset.get("url", ""),
-        )
-        asset_list.append(bridge)
-        bridge.update(database)
-        print(f"✅ Loaded bridge: {bridge.description} at ({lat}, {lon})")
-
-    return asset_list
+class esvAsset(trackedAsset):
+    def __init__(self, asset_id, tactical_call, location):
+        super().__init__(asset_id, "ESV", tactical_call, description='', location, url='')
 
 
 DEFAULT_CFG = "/etc/situational-awareness/config.json"
 DEFAULT_ASSETS = "/etc/situational-awareness/assets.json"
 
 
+# This file is normally not invoked at installation time.  Rather, it is invoked by a script when the
+# scenario assets file has been created for a specific drill or event.
+#
+# When invoked, pass the --config and --assets parameters, typically pointing to
+# /etc/{installation-name}/config.json and /etc/{installation-name}/assets.json
 def main():
     ap = argparse.ArgumentParser(description="scenario-setup")
     ap.add_argument(
@@ -300,8 +240,7 @@ def main():
     )
     args = ap.parse_args()
 
-    config = load_config(args)
-    assets_config = load_assets_config(args)
+    config = CF.Config("main", args.config)
 
     dbconfig = config.get("database", None)
     if not dbconfig:
@@ -312,9 +251,8 @@ def main():
         dbconfig.get("user"),
         dbconfig.get("host"),
         dbconfig.get("password"),
+        args,
         dbconfig.get("port"),
     )
-
-    assets_list = load_assets(assets_config, database)
 
     database.close()
