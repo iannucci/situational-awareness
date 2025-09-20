@@ -70,7 +70,7 @@ class ScenarioDB:
 
                 asset_obj = None
                 match type_code:
-                    case 'BRIDGE':
+                    case "BRIDGE":
                         location = asset.get("location", {})
                         lat = location.get("lat")
                         lon = location.get("lon")
@@ -89,9 +89,9 @@ class ScenarioDB:
                     case _:
                         pass
                 # Add it to the database
-                if asset_obj.update(self.database): # returns False on failure
+                if asset_obj.update(self.database):  # returns False on failure
                     # Add it to the local asset cache
-                    self.assets_dict[asset_id]=asset_obj
+                    self.assets_dict[asset_id] = asset_obj
                     print(f"✅ Loaded asset: {type_code}")
                 else:
                     print("❌ Failed to add asset {asset} to database")
@@ -141,7 +141,7 @@ class trackedAssetType:
 
 class trackedAsset:
     def __init__(
-        self, asset_id, type_code, tactical_call, description, location, url=""
+        self, asset_id, type_code, tactical_call, location, description, url=""
     ):
         self.asset_id = asset_id
         self.type_code = type_code
@@ -208,13 +208,15 @@ class trackedAsset:
 
 
 class bridgeAsset(trackedAsset):
-    def __init__(self, asset_id, tactical_call, description, location, url=""):
-        super().__init__(asset_id, "BRIDGE", tactical_call, description, location, url)
+    def __init__(self, asset_id, tactical_call, location, description, url=""):
+        super().__init__(asset_id, "BRIDGE", tactical_call, location, description, url)
 
 
 class esvAsset(trackedAsset):
     def __init__(self, asset_id, tactical_call, location):
-        super().__init__(asset_id, "ESV", tactical_call, description='', location, url='')
+        super().__init__(
+            asset_id, "ESV", tactical_call, location, description="", url=""
+        )
 
 
 DEFAULT_CFG = "/etc/situational-awareness/config.json"
