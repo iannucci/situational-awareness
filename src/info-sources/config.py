@@ -9,7 +9,7 @@ import os
 
 
 # **FIXME**  Search the current directory and /etc/{project}
-def config_path(name: str):
+def generate_config_path(name: str):
     full_path = os.path.abspath(os.path.join(os.getcwd(), f"{name}"))
     if os.path.exists(full_path):
         return full_path
@@ -36,7 +36,7 @@ class Config:
         if not hasattr(self, "classes"):
             self._configs = {}
         try:
-            config_path = config_path(config_file_name)
+            config_path = generate_config_path(config_file_name)
             print(f"🚨 [Config] Path: {config_path}")
             with open(config_path, "r") as f:
                 config = json.load(f)
@@ -50,7 +50,6 @@ class Config:
             )
         except Exception as e:
             print(f"❌ An unexpected error occurred: {e} while loading configuration")
-        return config
 
     def configs(self):
         if not hasattr(self, "classes"):
