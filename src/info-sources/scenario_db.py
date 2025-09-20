@@ -181,10 +181,10 @@ class trackedAsset:
 				INSERT INTO tracked_assets (asset_id, type_code, tactical_call, description, location, status, url, condition_type, condition_severity)
 				VALUES (%s, %s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s, %s)
 				ON CONFLICT (asset_id) DO UPDATE SET
-                location = ST_SetSRID(ST_MakePoint(%s, %s),
-                status = %s,
-                condition_type = %s,
-                condition_severity = %s;
+                location = EXCLUDED.location,
+                status = EXCLUDED.status,
+                condition_type = EXCLUDED.condition_type,
+                condition_severity = EXCLUDED.condition_severity;
 				""",
                 (
                     self.asset_id,
@@ -195,11 +195,6 @@ class trackedAsset:
                     self.location["lat"],
                     self.status,
                     self.url,
-                    self.condition.type,
-                    self.condition.severity,
-                    self.location["lon"],
-                    self.location["lat"],
-                    self.status,
                     self.condition.type,
                     self.condition.severity,
                 ),
