@@ -14,6 +14,11 @@ import pprint
 import scenario_db as DB
 
 
+def build_logger(level: str):
+    logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(message)s")
+    return logging.getLogger("meshtastic_client")
+
+
 def loggerInfo(my_logger):
     for name, logger in logging.Logger.manager.loggerDict.items():
         if isinstance(logger, logging.Logger):
@@ -23,13 +28,13 @@ def loggerInfo(my_logger):
 
 
 class MeshtasticClient:
-    def __init__(self, config, mattermost_callback, logger, database):
+    def __init__(self, config, mattermost_callback, database):
         self.config = config
         self.meshtastic_config = config.get("meshtastic", None)
         self.database_config = config.get("database", None)
         self.meshtastic_host = self.meshtastic_config.get("host", "")
         self.mattermost_callback = mattermost_callback
-        self.logger = logger
+        self.logger = build_logger(self.meshtastic_config.get("log_level", "INFO"))
         self.meshtastic_interface = None
         self.database = database
         # Establish a connection to the Meshtastic device
@@ -169,11 +174,6 @@ class MeshtasticClient:
                 )
 
 
-def build_logger(level: str):
-    logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(message)s")
-    return logging.getLogger("meshtastic_client")
-
-
 DEFAULT_CFG = "/etc/situational-awareness/config.json"
 DEFAULT_ASSETS = "/etc/situational-awareness/assets.json"
 
@@ -201,8 +201,8 @@ def main():
     config_repo.load("assets", args.assets)
     config = config_repo.config("main")
     assets_config = config_repo.config("assets")
-    database_config = config.get("database", {})
-    logger = build_logger(config.get("log_level", "INFO"))
+    # database_config = config.get("database", {})
+    logger = build_logger(config["meshtastic"].get("log_level", "INFO"))
     logger.info("✅ [Meshtastic] Logging is active")
 
     meshtastic_client = None
@@ -210,17 +210,17 @@ def main():
     database = None
 
     try:
-        database = DB.ScenarioDB(
-            database_config.get("dbname"),
-            database_config.get("user"),
-            database_config.get("host"),
-            database_config.get("password"),
-            database_config.get("port"),
-        )
+        database = DB.ScenarioDB(config)
+        #     database_config.get("dbname"),
+        #     database_config.get("user"),
+        #     database_config.get("host"),
+        #     database_config.get("password"),
+        #     database_config.get("port"),
+        # )
         database.load_assets(assets_config)
-        mattermost_client = MattermostClient(config, logger)
+        mattermost_client = MattermostClient(config)
         meshtastic_client = MeshtasticClient(
-            config, mattermost_client.callback, logger, database
+            config, mattermost_client.callback, database
         )
 
         # loggerInfo(logger)

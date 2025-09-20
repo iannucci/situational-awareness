@@ -6,6 +6,12 @@
 
 import json
 import os
+import logging
+
+
+def build_logger(level: str):
+    logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(message)s")
+    return logging.getLogger("config")
 
 
 # **FIXME**  Search the current directory and /etc/{project}
@@ -33,23 +39,26 @@ def singleton(cls):
 class Config:
     def __init__(self):
         self._configs = {}
+        self.logger = build_logger(logging.INFO)
 
     def load(self, key, config_file_name):
         try:
             config_path = generate_config_path(config_file_name)
-            print(f"🚨 [Config] Path: {config_path}")
+            self.logger.info(f"🚨 [Config] Path: {config_path}")
             with open(config_path, "r") as f:
                 config = json.load(f)
             self._configs[key] = config
-            print(f"✅ [Config] <{key}> loaded successfully")
+            self.logger.info(f"✅ [Config] <{key}> loaded successfully")
         except FileNotFoundError:
-            print(f"❌ Error: The file '{config_path}' was not found.")
+            self.logger.info(f"❌ Error: The file '{config_path}' was not found.")
         except json.JSONDecodeError:
-            print(
+            self.logger.info(
                 f"❌ Error: Could not decode JSON from '{config_path}'. Check file format."
             )
         except Exception as e:
-            print(f"❌ An unexpected error occurred: {e} while loading configuration")
+            self.logger.info(
+                f"❌ An unexpected error occurred: {e} while loading configuration"
+            )
 
     def config(self, key):
         if not hasattr(self, "_configs"):

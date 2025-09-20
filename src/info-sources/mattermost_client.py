@@ -3,10 +3,14 @@
 # Copyright © 2025 by Bob Iannucci.  All rights reserved worldwide.
 
 from mattermostdriver import Driver
+import logging
 
+def build_logger(level: str):
+    logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(message)s")
+    return logging.getLogger("mattermost_client")
 
 class MattermostClient:
-    def __init__(self, config, logger):
+    def __init__(self, config):
         self.config = config
         self.mattermost_config = config.get("mattermost", {})
         self.host = self.mattermost_config.get("host", "")
@@ -23,7 +27,7 @@ class MattermostClient:
             "port": self.port,
             "basepath": self.basepath,
         }
-        self.logger = logger
+        self.logger = build_logger(self.mattermost_config.get("log_level", "INFO")) # build_logger(logging.INFO)
         self.admin_driver = None
         self.user_driver = None
 
