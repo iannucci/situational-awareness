@@ -98,7 +98,7 @@ class ScenarioDB:
                         pass
                 # Add it to the database
                 if asset_obj is not None:
-                    if asset_obj.update(self.database):  # returns False on failure
+                    if asset_obj.update(self):  # returns False on failure
                         # Add it to the local asset cache
                         self.assets_dict[asset_id] = asset_obj
                         self.logger.info(f"✅ [Database] Loaded asset: {type_code}")
