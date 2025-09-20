@@ -33,7 +33,7 @@ def singleton(cls):
 class Config:
     def __init__(self, key, config_file_name):
         config = {}
-        if not hasattr(self, "classes"):
+        if not hasattr(self, "_configs"):
             self._configs = {}
         try:
             config_path = generate_config_path(config_file_name)
@@ -51,8 +51,8 @@ class Config:
         except Exception as e:
             print(f"❌ An unexpected error occurred: {e} while loading configuration")
 
-    def configs(self, key):
-        if not hasattr(self, "classes"):
+    def config(self, key):
+        if not hasattr(self, "_configs"):
             raise ValueError("❌ Configuration singleton has not been initialized.")
         else:
             return self._configs[key]
