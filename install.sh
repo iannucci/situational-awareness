@@ -510,7 +510,7 @@ mkdir -p /root/$MESHTASTIC
 cd /root/$MESHTASTIC
 python3 -m venv base
 source base/bin/activate
-pip3 install -r "$APP_DIR/requirements.txt"
+pip3 install --quiet -r "$APP_DIR/requirements.txt"
 python3 $APP_DIR/src/info-sources/$MESHTASTIC_PYTHON --config $ETC_DIR/config.json
 MESHTASTICCLIENTSH
 
@@ -574,7 +574,7 @@ else
     cd /root/$SCENARIO
     python3 -m venv base
     source base/bin/activate
-    pip3 install -r "$APP_DIR/requirements.txt"
+    pip3 install --quiet -r "$APP_DIR/requirements.txt"
     python3 $APP_DIR/src/info-sources/$SCENARIO_PYTHON --config $ETC_DIR/config.json --assets \$ASSETS_FILE
 fi
 SCENARIOSETUPSH
