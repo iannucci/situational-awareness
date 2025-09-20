@@ -137,12 +137,13 @@ class MeshtasticClient:
             and packet["decoded"]["portnum"] == "TELEMETRY_APP"
         ):
             try:
-                telemetry = packet["decoded"]["device_metrics"]
+                telemetry = packet["decoded"]["telemetry"]
+                deviceMetrics = telemetry["deviceMetrics"]
                 from_id = packet["fromId"]  # from_id is of the form !da574b90
                 _, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
-                battery = telemetry.get("battery_level", None)
-                uptime = telemetry.get("uptime_seconds", None)
+                battery = deviceMetrics.get("batteryLevel", None)
+                uptime = deviceMetrics.get("uptimeSeconds", None)
                 self.logger.info(
                     f"✅ [Meshtastic] Telemetry update from {callsign}: battery={battery}, uptime={uptime}"
                 )
