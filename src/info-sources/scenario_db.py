@@ -98,14 +98,10 @@ class ScenarioDB:
                         pass
                 # Add it to the database
                 if asset_obj is not None:
-                    if asset_obj.update(self):  # returns False on failure
-                        # Add it to the local asset cache
-                        self.assets_dict[asset_id] = asset_obj
-                        self.logger.info(f"✅ [Database] Loaded asset: {type_code}")
-                    else:
-                        self.logger.info(
-                            f"❌ [Database] Failed to add asset {asset} to database"
-                        )
+                    asset_obj.update(self)
+                    # Add it to the local asset cache
+                    self.assets_dict[asset_id] = asset_obj
+                    self.logger.info(f"✅ [Database] Loaded asset: {type_code}")
             except Exception as e:
                 self.logger.info(
                     f"❌ [Database] Failed to add asset {asset} to database: {e}"
@@ -140,7 +136,7 @@ class trackedAssetType:
                 """
 				INSERT INTO tracked_asset_types (type_code, type_name, organization, icon)
 				VALUES (%s, %s, %s, %s)
-				ON CONFLICT (type_code) DO NOTHING;
+				ON CONFLICT (type_code) DO UPDATE;
 				""",
                 (
                     self.type_code,
@@ -180,11 +176,11 @@ class trackedAsset:
             )
             return
         try:
-            rc = db_cursor.execute(
+            db_cursor.execute(
                 """
 				INSERT INTO tracked_assets (asset_id, type_code, tactical_call, description, location, status, url, condition_type, condition_severity)
 				VALUES (%s, %s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s, %s)
-				ON CONFLICT (asset_id) DO NOTHING;
+				ON CONFLICT (asset_id, location) DO UPDATE;
 				""",
                 (
                     self.asset_id,
@@ -199,10 +195,6 @@ class trackedAsset:
                     self.condition.severity,
                 ),
             )
-
-            if rc is None:
-                # DO NOTHING was triggered
-                return False
 
             db_cursor.execute(
                 """
