@@ -36,7 +36,7 @@ class MattermostClient:
     def callback(self, callback_data):
         try:
             self.logger.info(
-                f"✅ [Mattermost] Callback <{callback_data["type"]}> received from {callback_data["callsign"]}"
+                f"✅ [Mattermost] Callback <{callback_data["type"]}> received for {callback_data["callsign"]}"
             )
             match callback_data["type"]:
                 case "message":

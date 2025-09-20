@@ -150,7 +150,7 @@ class MeshtasticClient:
                     f"✅ [Meshtastic] Telemetry update from {callsign}: battery={battery}, uptime={uptime}"
                 )
                 callback_data = {
-                    "type": "position",
+                    "type": "telemetry",
                     "callsign": callsign,
                     "battery": battery,
                     "uptime": uptime,
