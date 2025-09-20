@@ -31,10 +31,10 @@ def singleton(cls):
 # e.g., Config("main", "config.json") loads os.path.abspath(path + config.json) to the "main" key
 @singleton
 class Config:
-    def __init__(self, key, config_file_name):
-        config = {}
-        if not hasattr(self, "_configs"):
-            self._configs = {}
+    def __init__(self):
+        self._configs = {}
+
+    def load(self, key, config_file_name):
         try:
             config_path = generate_config_path(config_file_name)
             print(f"🚨 [Config] Path: {config_path}")

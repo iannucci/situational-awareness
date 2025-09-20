@@ -196,9 +196,12 @@ def main():
     )
     args = ap.parse_args()
 
-    config = CF.Config("main", args.config).config("main")
+    config_repo = CF.Config()  # singleton
+    config_repo.load("main", args.config)
+    config_repo.load("assets", args.assets)
+    config = config_repo.config("main")
+    assets_config = config_repo.config("assets")
     database_config = config.get("database", {})
-    assets_config = CF.Config("assets", args.assets).config("assets")
     logger = build_logger(config.get("log_level", "INFO"))
     logger.info("✅ [Meshtastic] Logging is active")
 
