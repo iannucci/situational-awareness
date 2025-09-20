@@ -22,13 +22,12 @@ def singleton(cls):
 
 @singleton
 class ScenarioDB:
-    def __init__(self, dbname, user, host, password, args, port=5432):
+    def __init__(self, dbname, user, host, password, port=5432):
         self.dbname = dbname
         self.user = user
         self.host = host
         self.password = password
         self.port = port
-        self.args = args
         self.conn = None
         self.cursor = None
         self.assets_dict = {}
@@ -44,16 +43,14 @@ class ScenarioDB:
             self.conn = None
         else:
             print("✅ Database connection established")
-        self.assets_config = CF.Config("assets", args.assets).config("assets")
-        self._load_assets_from_file()
 
     def close(self):
         if self.conn:
             self.conn.close()
             print("✅ Database connection closed")
 
-    def _load_assets_from_file(self):
-        for asset in self.assets_config.get("assets", []):
+    def load_assets(self, assets):
+        for asset in assets:  # self.assets_config.get("assets", []):
             try:
                 type_code = asset.get("type", "").upper()
                 if type_code not in self.type_codes_set:
@@ -223,10 +220,7 @@ DEFAULT_CFG = "/etc/situational-awareness/config.json"
 DEFAULT_ASSETS = "/etc/situational-awareness/assets.json"
 
 
-# This file is normally not invoked at installation time.  Rather, it is invoked by a script when the
-# scenario assets file has been created for a specific drill or event.
-#
-# When invoked, pass the --config and --assets parameters, typically pointing to
+# When invoked directly, pass the --config and --assets parameters, typically pointing to
 # /etc/{installation-name}/config.json and /etc/{installation-name}/assets.json
 def main():
     ap = argparse.ArgumentParser(description="scenario-setup")
@@ -243,6 +237,7 @@ def main():
     args = ap.parse_args()
 
     config = CF.Config("main", args.config).config("main")
+    args_config = CF.Config("assets", args.assets).config("assets")
 
     dbconfig = config.get("database", None)
     if not dbconfig:
@@ -253,7 +248,6 @@ def main():
         dbconfig.get("user"),
         dbconfig.get("host"),
         dbconfig.get("password"),
-        args,
         dbconfig.get("port"),
     )
 

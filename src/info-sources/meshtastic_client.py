@@ -23,23 +23,15 @@ def loggerInfo(my_logger):
 
 
 class MeshtasticClient:
-    def __init__(self, config, args, mattermost_callback, logger):
+    def __init__(self, config, mattermost_callback, logger, database):
         self.config = config
-        self.args = args
         self.meshtastic_config = config.get("meshtastic", None)
         self.database_config = config.get("database", None)
         self.meshtastic_host = self.meshtastic_config.get("host", "")
         self.mattermost_callback = mattermost_callback
         self.logger = logger
         self.meshtastic_interface = None
-        self.database = DB.ScenarioDB(
-            self.database_config.get("dbname"),
-            self.database_config.get("user"),
-            self.database_config.get("host"),
-            self.database_config.get("password"),
-            self.args,
-            self.database_config.get("port"),
-        )
+        self.database = database
         # Establish a connection to the Meshtastic device
         try:
             self.meshtastic_interface = meshtastic_tcp.TCPInterface(
@@ -64,8 +56,8 @@ class MeshtasticClient:
             raise
 
     def close(self):
-        self.database.close()
-        self.meshtastic_interface.close()
+        if self.meshtastic_interface is not None:
+            self.meshtastic_interface.close()
 
     # Translates a node ID into its short name and long name
     def _id_to_name(self, interface, id):
@@ -205,16 +197,27 @@ def main():
     args = ap.parse_args()
 
     config = CF.Config("main", args.config).config("main")
+    database_config = config.get("database", {})
+    assets_config = CF.Config("assets", args.assets).config("assets")
     logger = build_logger(config.get("log_level", "INFO"))
     logger.info("✅ [Meshtastic] Logging is active")
 
     meshtastic_client = None
     mattermost_client = None
+    database = None
 
     try:
+        database = DB.ScenarioDB(
+            database_config.get("dbname"),
+            database_config.get("user"),
+            database_config.get("host"),
+            database_config.get("password"),
+            database_config.get("port"),
+        )
+        database.load_assets(assets_config)
         mattermost_client = MattermostClient(config, logger)
         meshtastic_client = MeshtasticClient(
-            config, args, mattermost_client.callback, logger
+            config, mattermost_client.callback, logger, database
         )
 
         # loggerInfo(logger)
@@ -228,6 +231,8 @@ def main():
             meshtastic_client.close()
         if mattermost_client is not None:
             mattermost_client.close()
+        if database is not None:
+            database.close()
 
 
 if __name__ == "__main__":
