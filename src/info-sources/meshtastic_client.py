@@ -38,6 +38,7 @@ class MeshtasticClient:
         self.meshtastic_interface = None
         self.database = database
         self.esv_dict = {}
+        self.tracked_asset_type_set = set()
         # Establish a connection to the Meshtastic device
         try:
             self.meshtastic_interface = meshtastic_tcp.TCPInterface(
@@ -66,6 +67,12 @@ class MeshtasticClient:
             self.meshtastic_interface.close()
 
     def _update_esv(self, callsign, location):
+        if "ESV" not in self.tracked_asset_type_set:
+            asset_type = DB.trackedAssetType(
+                "ESV", "Emergency Services Volunteer", "OES"
+            )
+            asset_type.insert(self.database)
+            self.tracked_asset_type_set.add("ESV")
         if callsign in self.esv_dict:
             existing_esv = self.esv_dict[callsign]
             existing_esv.location = location
