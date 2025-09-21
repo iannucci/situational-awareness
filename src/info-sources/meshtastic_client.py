@@ -37,6 +37,7 @@ class MeshtasticClient:
         self.logger = build_logger(self.meshtastic_config.get("log_level", "INFO"))
         self.meshtastic_interface = None
         self.database = database
+        self.esv_dict = {}
         # Establish a connection to the Meshtastic device
         try:
             self.meshtastic_interface = meshtastic_tcp.TCPInterface(
@@ -63,6 +64,16 @@ class MeshtasticClient:
     def close(self):
         if self.meshtastic_interface is not None:
             self.meshtastic_interface.close()
+
+    def _update_esv(self, callsign, location):
+        if callsign in self.esv_dict:
+            existing_esv = self.esv_dict[callsign]
+            existing_esv.location = location
+            existing_esv.update()
+        else:
+            new_esv = DB.esvAsset(callsign, callsign, location)
+            new_esv.update()
+            self.esv_dict[callsign] = new_esv
 
     # Translates a node ID into its short name and long name
     def _id_to_name(self, interface, id):
@@ -133,6 +144,9 @@ class MeshtasticClient:
                     "altitude": alt,
                 }
                 self.mattermost_callback(callback_data)
+
+                self._update_esv(callsign, {"lat": lat, "lon": lon})
+
             except Exception as e:
                 self.logger.error(
                     f"❌ [Meshtastic] Error processing position packet: {e}"
@@ -204,8 +218,6 @@ def main():
 
     logger = build_logger(config["meshtastic"].get("log_level", "INFO"))
     logger.info("✅ [Meshtastic] Logging is active")
-
-    logger.info(assets_config)
 
     meshtastic_client = None
     mattermost_client = None

@@ -122,10 +122,7 @@ function updateAssetMarkers(assets) {
                         iconAnchor: [19, 47],   // point of the icon which will correspond to marker's location
                         popupAnchor: [0, -20]   // point from which the popup should open relative to the iconAnchor
                     });
-                    // marker = L.marker([asset.latitude, asset.longitude], { 
-                    //     icon: svgIcon, color: "#e74c3c" 
-                    // }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><a href="${asset.url}" target="_blank">Info</a>`);
-                    marker = L.marker([asset.latitude, asset.longitude], { icon: svgIcon, 
+                   marker = L.marker([asset.latitude, asset.longitude], { icon: svgIcon, 
                         color: "#e74c3c" 
                     }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><img src="${asset.url}" width=300 height=300>`);
                     break; 
