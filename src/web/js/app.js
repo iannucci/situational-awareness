@@ -69,8 +69,8 @@ function initMap() {
 
     var boundaryStyle = {
         "color": "#3498db",
-        "weight": 0.1,
-        "fillOpacity": 0.2
+        "weight": 0.4,
+        "fillOpacity": 0.3
     };
 
     L.geoJSON(paloAltoBoundary, { style: boundaryStyle }).addTo(map);
