@@ -76,7 +76,7 @@ class MeshtasticClient:
         if callsign in self.esv_dict:
             existing_esv = self.esv_dict[callsign]
             existing_esv.location = location
-            existing_esv.update()
+            existing_esv.update(self.database)
         else:
             new_esv = DB.esvAsset(callsign, callsign, location)
             new_esv.update(self.database)
