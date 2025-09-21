@@ -72,7 +72,7 @@ class MeshtasticClient:
             existing_esv.update()
         else:
             new_esv = DB.esvAsset(callsign, callsign, location)
-            new_esv.update()
+            new_esv.update(self.database)
             self.esv_dict[callsign] = new_esv
 
     # Translates a node ID into its short name and long name
