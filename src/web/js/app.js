@@ -60,14 +60,20 @@ function initMap() {
     
     const boundaryRectangle = L.rectangle(PALO_ALTO_BOUNDING_BOX.bounds, {
         color: "#3498db",
-        weight: 0.1,
-        fillOpacity: 0.1,
+        weight: 0.0,
+        fillOpacity: 0.0,
         dashArray: "10, 10"
     }).addTo(map);
 
-    boundaryRectangle.bindPopup("<b>Palo Alto Service Area</b><br/>Situational Awareness Coverage Zone");
+    // boundaryRectangle.bindPopup("<b>Palo Alto Service Area</b><br/>Situational Awareness Coverage Zone");
 
-    L.geoJSON(paloAltoBoundary).addTo(map);
+    var boundaryStyle = {
+        "color": "#3498db",
+        "weight": 0.1,
+        "fillOpacity": 0.2
+    };
+
+    L.geoJSON(paloAltoBoundary, { style: boundaryStyle }).addTo(map);
     
     incidentLayer = L.layerGroup().addTo(map);
     assetLayer = L.layerGroup().addTo(map);

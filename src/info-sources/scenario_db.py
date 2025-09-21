@@ -72,7 +72,7 @@ class ScenarioDB:
                     new_type.insert(self)
                     self.type_list.append(new_type)
                     self.type_codes_set.add(type_code)
-                    self.logger.info(f"🔖 [Database] Found asset type: {type_code}")
+                    self.logger.info(f"✅ [Database] Found asset type: {type_code}")
 
                 asset_obj = None
                 match type_code:
@@ -217,10 +217,10 @@ class trackedAsset:
             )
 
             database.conn.commit()
-            self.logger.info(f"✅ [Database] Updated asset: {self.description}")
+            self.logger.info(f"✅ [Database] Updated asset: {self.asset_id}")
         except Exception as e:
             self.logger.info(
-                f"❌ [Database] Error inserting asset {self.description}: {e}"
+                f"❌ [Database] Error inserting asset {self.asset_id}: {e}"
             )
             return False
         return True
