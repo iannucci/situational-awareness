@@ -173,6 +173,7 @@ class MeshtasticClient:
                 deviceMetrics = telemetry.get("deviceMetrics", None)
                 if deviceMetrics is None:
                     return
+                self.logger.info(f"✅ [Meshtastic] Telemetry packet: {packet}")
                 from_id = packet.get("fromId", None)  # from_id is of the form !da574b90
                 _, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
