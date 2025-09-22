@@ -5,9 +5,11 @@
 from mattermostdriver import Driver
 import logging
 
+
 def build_logger(level: str):
     logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(message)s")
     return logging.getLogger("mattermost_client")
+
 
 class MattermostClient:
     def __init__(self, config):
@@ -27,7 +29,9 @@ class MattermostClient:
             "port": self.port,
             "basepath": self.basepath,
         }
-        self.logger = build_logger(self.mattermost_config.get("log_level", "INFO")) # build_logger(logging.INFO)
+        self.logger = build_logger(
+            self.mattermost_config.get("log_level", "INFO")
+        )  # build_logger(logging.INFO)
         self.admin_driver = None
         self.user_driver = None
 
@@ -41,16 +45,28 @@ class MattermostClient:
 
     def callback(self, callback_data):
         try:
-            self.logger.info(
-                f"✅ [Mattermost] Callback <{callback_data["type"]}> received for {callback_data["callsign"]}"
-            )
             match callback_data["type"]:
                 case "message":
+                    callsign = callback_data["callsign"]
+                    message = callback_data["message"]
+                    self.logger.info(
+                        f"✅ [Meshtastic] Message from {callsign}: <{message}>"
+                    )
                     self._post(callback_data["callsign"], callback_data["message"])
                 case "position":
-                    pass
+                    callsign = callback_data["callsign"]
+                    lat = callback_data["latotude", 0.0]
+                    lon = callback_data["longitude", 0.0]
+                    alt = callback_data["altitude", 0.0]
+                    self.logger.info(
+                        f"✅ [Meshtastic] Position update from {callsign}: lat={lat}, lon={lon}, alt={alt}"
+                    )
                 case "telemetry":
-                    pass
+                    callsign = callback_data["callsign"]
+                    from_number = callback_data["from"]
+                    self.logger.info(
+                        f"✅ [Mattermost] Telemetry from {callsign} ({from_number})"
+                    )
                 case _:
                     self.logger.info(
                         f"❌ [Mattermost] Unknown callback type: {callback_data['type']}"

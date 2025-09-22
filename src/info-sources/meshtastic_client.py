@@ -109,13 +109,14 @@ class MeshtasticClient:
                 from_id = packet["fromId"]  # from_id is of the form !da574b90
                 _, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
-                self.logger.info(
-                    f"✅ [Meshtastic] Message from {callsign}: <{text_message}>"
-                )
                 callback_data = {
                     "type": "message",
                     "callsign": callsign,
                     "message": text_message,
+                    "from": packet.get("from", "unknown"),
+                    "fromId": packet.get("fromId", "unknown"),
+                    "toId": packet.get("toId", "unknown"),
+                    "time": packet.get("time", "unknown"),
                 }
                 self.mattermost_callback(callback_data)
             except Exception as e:
@@ -140,15 +141,16 @@ class MeshtasticClient:
                 lat = pos.get("latitude", None)
                 lon = pos.get("longitude", None)
                 alt = pos.get("altitude", None)
-                self.logger.info(
-                    f"✅ [Meshtastic] Position update from {callsign}: lat={lat}, lon={lon}, alt={alt}"
-                )
                 callback_data = {
                     "type": "position",
                     "callsign": callsign,
                     "latitude": lat,
                     "longitude": lon,
                     "altitude": alt,
+                    "from": packet.get("from", "unknown"),
+                    "fromId": packet.get("fromId", "unknown"),
+                    "toId": packet.get("toId", "unknown"),
+                    "time": packet.get("time", "unknown"),
                 }
                 self.mattermost_callback(callback_data)
 
@@ -173,7 +175,6 @@ class MeshtasticClient:
                 deviceMetrics = telemetry.get("deviceMetrics", None)
                 if deviceMetrics is None:
                     return
-                self.logger.info(f"✅ [Meshtastic] Telemetry packet: {packet}")
                 from_id = packet.get("fromId", None)  # from_id is of the form !da574b90
                 _, long_name = self._id_to_name(interface, from_id)
                 callsign = long_name.split()[0].upper()
@@ -187,6 +188,10 @@ class MeshtasticClient:
                     "callsign": callsign,
                     "battery": battery,
                     "uptime": uptime,
+                    "from": packet.get("from", "unknown"),
+                    "fromId": packet.get("fromId", "unknown"),
+                    "toId": packet.get("toId", "unknown"),
+                    "time": packet.get("time", "unknown"),
                 }
                 self.mattermost_callback(callback_data)
             except Exception as e:
