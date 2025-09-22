@@ -39,6 +39,7 @@ class MeshtasticClient:
         self.database = database
         self.esv_dict = {}
         self.tracked_asset_type_set = set()
+        self.ignore_list = self.meshtastic_config.get("ignore_list", [])
         # Establish a connection to the Meshtastic device
         try:
             self.meshtastic_interface = meshtastic_tcp.TCPInterface(
@@ -104,6 +105,8 @@ class MeshtasticClient:
             and packet["decoded"]["portnum"] == "TEXT_MESSAGE_APP"
         ):
             try:
+                if packet.get("from", 0) in self.ignore_list:
+                    return
                 text_message = packet["decoded"]["payload"].decode("utf-8")
                 # from_node = packet["from"]
                 from_id = packet["fromId"]  # from_id is of the form !da574b90
@@ -134,6 +137,8 @@ class MeshtasticClient:
             and packet["decoded"]["portnum"] == "POSITION_APP"
         ):
             try:
+                if packet.get("from", 0) in self.ignore_list:
+                    return
                 pos = packet["decoded"]["position"]
                 from_id = packet["fromId"]  # from_id is of the form !da574b90
                 _, long_name = self._id_to_name(interface, from_id)
@@ -169,6 +174,8 @@ class MeshtasticClient:
             and packet["decoded"]["portnum"] == "TELEMETRY_APP"
         ):
             try:
+                if packet.get("from", 0) in self.ignore_list:
+                    return
                 telemetry = packet["decoded"]["telemetry"]
                 deviceMetrics = telemetry.get("deviceMetrics", None)
                 if deviceMetrics is None:
