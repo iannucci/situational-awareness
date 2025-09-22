@@ -48,24 +48,28 @@ class MattermostClient:
             match callback_data["type"]:
                 case "message":
                     callsign = callback_data["callsign"]
+                    from_number = callback_data["from"]
                     message = callback_data["message"]
                     self.logger.info(
-                        f"✅ [Meshtastic] Message from {callsign}: <{message}>"
+                        f"✅ [Mattermost] Message from {callsign} ({from_number}): <{message}>"
                     )
                     self._post(callback_data["callsign"], callback_data["message"])
                 case "position":
                     callsign = callback_data["callsign"]
-                    lat = callback_data["latotude", 0.0]
+                    from_number = callback_data["from"]
+                    lat = callback_data["latitude", 0.0]
                     lon = callback_data["longitude", 0.0]
                     alt = callback_data["altitude", 0.0]
                     self.logger.info(
-                        f"✅ [Meshtastic] Position update from {callsign}: lat={lat}, lon={lon}, alt={alt}"
+                        f"✅ [Mattermost] Position from {callsign} ({from_number}): lat={lat}, lon={lon}, alt={alt}"
                     )
                 case "telemetry":
                     callsign = callback_data["callsign"]
                     from_number = callback_data["from"]
+                    battery = callback_data["battery"]
+                    uptime = callback_data["uptime"]
                     self.logger.info(
-                        f"✅ [Mattermost] Telemetry from {callsign} ({from_number})"
+                        f"✅ [Mattermost] Telemetry from {callsign} ({from_number}): battery={battery}, uptime={uptime}"
                     )
                 case _:
                     self.logger.info(

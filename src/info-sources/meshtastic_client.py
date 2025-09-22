@@ -153,9 +153,7 @@ class MeshtasticClient:
                     "time": packet.get("time", "unknown"),
                 }
                 self.mattermost_callback(callback_data)
-
                 self._update_esv(callsign, {"lat": lat, "lon": lon})
-
             except Exception as e:
                 self.logger.error(
                     f"❌ [Meshtastic] Error processing position packet: {e}"
@@ -180,9 +178,6 @@ class MeshtasticClient:
                 callsign = long_name.split()[0].upper()
                 battery = deviceMetrics.get("batteryLevel", 0)
                 uptime = deviceMetrics.get("uptimeSeconds", 0)
-                self.logger.info(
-                    f"✅ [Meshtastic] Telemetry update from {callsign}: battery={battery}, uptime={uptime}"
-                )
                 callback_data = {
                     "type": "telemetry",
                     "callsign": callsign,
