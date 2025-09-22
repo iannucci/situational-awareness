@@ -57,17 +57,17 @@ class MattermostClient:
                 case "position":
                     callsign = callback_data["callsign"]
                     from_number = callback_data["from"]
-                    lat = callback_data["latitude", 0.0]
-                    lon = callback_data["longitude", 0.0]
-                    alt = callback_data["altitude", 0.0]
+                    lat = callback_data.get("latitude", 0.0)
+                    lon = callback_data.get("longitude", 0.0)
+                    alt = callback_data.get("altitude", 0.0)
                     self.logger.info(
                         f"✅ [Mattermost] Position from {callsign} ({from_number}): lat={lat}, lon={lon}, alt={alt}"
                     )
                 case "telemetry":
                     callsign = callback_data["callsign"]
                     from_number = callback_data["from"]
-                    battery = callback_data["battery"]
-                    uptime = callback_data["uptime"]
+                    battery = callback_data.get("battery", "unknown")
+                    uptime = callback_data.get("uptime", "unknown")
                     self.logger.info(
                         f"✅ [Mattermost] Telemetry from {callsign} ({from_number}): battery={battery}, uptime={uptime}"
                     )
