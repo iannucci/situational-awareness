@@ -46,7 +46,7 @@ class MattermostClient:
             )
             match callback_data["type"]:
                 case "message":
-                    pass
+                    self._post(callback_data["callsign"], callback_data["message"])
                 case "position":
                     pass
                 case "telemetry":
