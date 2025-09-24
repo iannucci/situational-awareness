@@ -8,3 +8,7 @@ src/info-sources/config.json
 assets.json
 
 config.json
+
+*.pyc
+
+*.qgz
