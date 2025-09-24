@@ -34,5 +34,10 @@
 				"token": "xxx"
 			}
 		]
+	},
+	"pop": {
+		"host": "xxx",
+		"damage_userid": "xxx",
+		"damage_password": "xxx"
 	}
 }

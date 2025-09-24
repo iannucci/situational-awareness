@@ -22,16 +22,15 @@ def build_logger(level: str):
 
 
 class POPClient:
-    def __init__(self, config, logger):
+    def __init__(self, config, userid, password, logger):
         self.config = config
         self.logger = logger
         self.pop_config = config.get("pop", {})
         self.host = self.pop_config.get("host", "pophost")
-        self.userid = self.pop_config.get("userid", "unknown")
-        self.password = self.pop_config.get("password", "unknown")
+        self.userid = userid
+        self.password = password
         self.connection = None
 
-    # Returns (possibly empty) message list
     def _connect(self):
         message_count = 0
         try:
@@ -57,14 +56,11 @@ class POPClient:
                 lines = self.connection.retr(i)[1]
                 message_data = b"\n".join(lines)
                 msg = message_from_bytes(message_data, policy=default)
-                # self.logger.info("\n--- Message Headers ---")
                 headers = {}
                 for header, value in msg.items():
                     headers[header] = value
-                    # self.logger.info(f"{header}: {value}")
 
                 clean_body = ""
-                # self.logger.info("\n--- Message Body ---")
                 # Walk through the message parts to find the plain text body
                 for part in msg.walk():
                     # Check if the part is plain text
@@ -77,9 +73,8 @@ class POPClient:
                         clean_body = (
                             body.replace("\r\n", "\n").replace("\n\n", "\n").strip()
                         )
-                        # self.logger.info(clean_body)
                 messages.append({"headers": headers, "body": clean_body})
-                # self.connection.dele(i)
+                self.connection.dele(i)
         except Exception as e:
             self.logger.info(f"❌ [POP] Could not retrieve messages: {e}")
         finally:
@@ -104,16 +99,20 @@ def main():
         config_repo = CF.Config()  # singleton
         config_repo.load("main", args.config)
         config = config_repo.config("main")
+        pop_config = config.get("pop", {})
 
         logger = build_logger(config["pop"].get("log_level", "INFO"))
         logger.info("✅ [POP] Logging is active")
 
+        damage_userid = pop_config.get("damage_userid", "unknown")
+        damage_password = pop_config.get("damage_password", "unknown")
+
         while True:
-            client = POPClient(config, logger)
-            messages = client.messages()
-            # if messages != []:
-            for message in messages:
-                logger.info(f"Body: {message['body']}")
+            # Get damage reports
+            client = POPClient(config, damage_userid, damage_password, logger)
+            damage_reports = client.messages()
+            for damage_report in damage_reports:
+                logger.info(f"Damage report:\n{damage_report['body']}")
             time.sleep(1)
 
     except KeyboardInterrupt:
