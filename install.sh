@@ -215,8 +215,9 @@ if [[ $PG_VERSION -ge 14 ]]; then
 fi
 
 # Create database and user
+# Assets are filled in by the Meshtastic client when it starts up
 echo -e "${BLUE}Creating database...${NC}"
-sudo -u postgres psql $QUIET -c "DROP database IF EXISTS $DB_NAME WITH (FORCE);" $ORTRUE
+sudo -u postgres psql $QUIET -c "DROP database IF EXISTS $DB_NAME WITH (FORCE);"
 sudo -u postgres createdb $DB_NAME || echo -e "${YELLOW}Database may already exist${NC}"
 sudo -u postgres psql $QUIET -c "DROP OWNED BY $DB_USER;"
 

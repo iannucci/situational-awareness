@@ -42,10 +42,10 @@ const PALO_ALTO_BOUNDING_BOX = {
 
 const API_BASE = "/api/v1";
 
-const COLORRED = "#db3434ff";
-const COLORYELLOW = "#d8db34ff";
-const COLORGREEN = "#34db34ff";
-const COLORBLACK = "#000000ff";
+const COLORRED = "#db3434";
+const COLORYELLOW = "#d8db34";
+const COLORGREEN = "#34db34";
+const COLORBLACK = "#000000";
 
 (function () {
     const originalConsoleLog = console.log;
@@ -303,7 +303,7 @@ function updateAssetMarkers(assets) {
                     }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><img src="${asset.url}" width=300 height=300>`);
                     break; 
                 case 'ESV':
-                    console.log("Updating ESV marker")
+                    console.log("[app] Updating ESV marker")
                     const now_seconds = Math.floor(Date.now() / 1000);
                     const status_age_minutes = Math.floor((now_seconds - asset.last_update) / 60);
                     var iconColor = COLORRED;
@@ -313,10 +313,11 @@ function updateAssetMarkers(assets) {
                         iconColor = COLORYELLOW;
                     }
                     const last_heard = lastHeardFromString(status_age_minutes);
-                    console.log(asset.asset_id,"last heard from", last_heard)
+                    console.log("[app]", asset.asset_id,"last heard from", last_heard)
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: COLORBLACK, fillColor: iconColor, fillOpacity: 0.8, radius: 6
                     }).bindPopup(`<b>${asset.asset_id}</b><br/>Last heard from: ${last_heard})}<br/>Status: ${asset.status}`);
+                    break;
                 default:
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
