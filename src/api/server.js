@@ -40,7 +40,7 @@ try {
 } catch (err) {
     console.warn("⚠️ [server] logs route not found, creating placeholder");
     logsRouter = express.Router();
-    logsRouter.get("/entry", (req, res) => res.json({ success: true, data: [], note: "Route not implemented" }));
+    logsRouter.post("/entry", (req, res) => res.json({ success: true, data: [], note: "Route not implemented" }));
 }
 
 // Configuration
@@ -152,6 +152,7 @@ app.use((req, res, next) => {
 // API Routes
 app.use("/api/v1/incidents", incidentsRouter);
 app.use("/api/v1/assets", assetsRouter);
+app.use("/api/v1/logs", logsRouter);
 
 // Health check endpoint with more comprehensive checks
 app.get("/api/health", async (req, res) => {
@@ -198,6 +199,7 @@ app.get("/api/v1", (req, res) => {
             health: "/api/health",
             incidents: "/api/v1/incidents/active",
             assets: "/api/v1/assets/status",
+            logs: "/api/v1/logs/entry"
         },
         documentation: "https://github.com/iannucci/situational-awareness",
         timestamp: new Date().toISOString()
