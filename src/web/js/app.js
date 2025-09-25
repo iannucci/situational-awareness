@@ -307,6 +307,7 @@ function updateAssetMarkers(assets) {
                     // console.log("Last update seconds:", asset.last_update);
                     const asset_age_minutes = Math.floor((now_seconds - asset.last_update) / 60);
                     // console.log("[app] Last update:", asset.last_update, "Age in minutes: ", asset_age_minutes)
+                    var iconColor = COLORBLACK;
                     if (asset_age_minutes < 20) {
                         iconColor = COLORGREEN;
                     } else if (asset_age_minutes < 25) {
