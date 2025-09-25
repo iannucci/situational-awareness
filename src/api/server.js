@@ -14,7 +14,7 @@ require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 console.log("🚨 [server] Situational Awareness API Starting...");
 
 // Route imports with error handling
-let incidentsRouter, assetsRouter; logsRouter
+let incidentsRouter, assetsRouter, logsRouter;
 
 try {
     incidentsRouter = require("./routes/incidents");
