@@ -42,6 +42,31 @@ const PALO_ALTO_BOUNDING_BOX = {
 
 const API_BASE = "/api/v1";
 
+function sendLogToServer(logEntry) {
+    fetch(`${API_BASE}/logs/entry`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(logEntry),
+    })
+        .then(response => {
+            if (!response.ok) {
+                console.error('Failed to send log:', response.statusText);
+            }
+        })
+        .catch(error => {
+            console.error('Error sending log:', error);
+        });
+}
+
+const originalConsoleLog = console.log;
+console.log = function (...args) {
+    // Send args to server
+    sendLogToServer({ level: 'log', message: args.join(' '), timestamp: new Date().toISOString() });
+    originalConsoleLog.apply(console, args); // Call original console.log
+};
+
 function initMap() {
     map = L.map("map", {
         center: PALO_ALTO_BOUNDING_BOX.center,

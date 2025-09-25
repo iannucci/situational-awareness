@@ -14,7 +14,7 @@ require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 console.log("🚨 [server] Situational Awareness API Starting...");
 
 // Route imports with error handling
-let incidentsRouter, assetsRouter;
+let incidentsRouter, assetsRouter; logsRouter
 
 try {
     incidentsRouter = require("./routes/incidents");
@@ -35,12 +35,12 @@ try {
 }
 
 try {
-    sheltersRouter = require("./routes/shelters");
-    console.log("✅ [server] Loaded shelters routes");
+    logsRouter = require("./routes/logs");
+    console.log("✅ [server] Loaded remote logging routes");
 } catch (err) {
-    console.warn("⚠️ [server] shelters route not found, creating placeholder");
-    sheltersRouter = express.Router();
-    sheltersRouter.get("/available", (req, res) => res.json({ success: true, data: [], note: "Route not implemented" }));
+    console.warn("⚠️ [server] logs route not found, creating placeholder");
+    logsRouter = express.Router();
+    logsRouter.get("/entry", (req, res) => res.json({ success: true, data: [], note: "Route not implemented" }));
 }
 
 // Configuration
