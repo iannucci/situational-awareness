@@ -288,7 +288,6 @@ function updateAssetMarkers(assets) {
     assets.forEach(asset => {
         if (asset.longitude && asset.latitude) {
             var marker;
-            console.log("[app] Updating marker for", asset.type_code);
             switch (asset.type_code) {
                 case 'BRIDGE':
                     const svgIcon = L.icon({
@@ -303,21 +302,20 @@ function updateAssetMarkers(assets) {
                     break; 
                 case 'ESV':
                     const now_seconds = Math.floor(Date.now() / 1000);
-                    // console.log("Now seconds:", now_seconds);
-                    // console.log("Last update seconds:", asset.last_update);
-                    const asset_age_minutes = Math.floor((now_seconds - asset.last_update) / 60);
-                    // console.log("[app] Last update:", asset.last_update, "Age in minutes: ", asset_age_minutes)
+                    const status_age_minutes = Math.floor((now_seconds - asset.last_update) / 60);
                     var iconColor = COLORBLACK;
-                    if (asset_age_minutes < 20) {
+                    if (status_age_minutes < 20) {
                         iconColor = COLORGREEN;
-                    } else if (asset_age_minutes < 25) {
+                    } else if (status_age_minutes < 25) {
                         iconColor = COLORYELLOW;
                     } else {
                         iconColor = COLORRED;
                     }
+                    const lastHeard = lastHeardFromString(status_age_minutes);
+                    console.log(asset.asset_id,"last heard from", last_heard)
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: COLORBLACK, fillColor: iconColor, fillOpacity: 0.8, radius: 6
-                    }).bindPopup(`<b>${asset.asset_id}</b><br/>Last heard from: ${lastHeardFromString(asset_age_minutes)}<br/>Status: ${asset.status}`);
+                    }).bindPopup(`<b>${asset.asset_id}</b><br/>Last heard from: ${lastHeard})}<br/>Status: ${asset.status}`);
                 default:
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
