@@ -3,6 +3,7 @@ const router = express.Router();
 
 router.get("/status", async (req, res) => {
     try {
+        console.log("[assets] Retrieving status");
         const pool = req.app.get("db");
         
         if (!pool) {
@@ -40,6 +41,7 @@ router.get("/status", async (req, res) => {
                 ) tal ON true
             `;
             const result = await pool.query(query);
+            console.log("[assets] Database query result:", result.rows)
             res.json({
                 success: true,
                 data: result.rows,
