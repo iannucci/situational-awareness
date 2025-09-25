@@ -11,6 +11,9 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+# set to --quiet to suppress chatter
+QUIET=""
+
 NAME="situational-awareness"
 APP_DIR="/opt/$NAME"
 UNIT_FILE="/etc/systemd/system/$NAME.service"
@@ -151,7 +154,7 @@ if [[ -f /etc/debian_version ]]; then
     apt install -qq -y wget ca-certificates | grep -v "already the newest version"
     
     # Add PostgreSQL official APT repository
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg
+    wget $QUIET -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
     
     apt update -qq
@@ -213,9 +216,9 @@ fi
 
 # Create database and user
 echo -e "${BLUE}Creating database...${NC}"
-sudo -u postgres psql --quiet -c "DROP database IF EXISTS $DB_NAME WITH (FORCE);" || true
+sudo -u postgres psql $QUIET -c "DROP database IF EXISTS $DB_NAME WITH (FORCE);" || true
 sudo -u postgres createdb $DB_NAME || echo -e "${YELLOW}Database may already exist${NC}"
-sudo -u postgres psql --quiet -c "DROP OWNED BY $DB_USER;" || true
+sudo -u postgres psql $QUIET -c "DROP OWNED BY $DB_USER;" || true
 
 # echo -e "${BLUE}Dropping user $DB_USER if exists...${NC}"
 # sudo -u postgres psql -c "SELECT 'DROP OWNED BY $DB_USER' FROM pg_roles WHERE rolname = '$DB_USER' \gexec"
@@ -225,21 +228,21 @@ sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" || true
 
 echo -e "${BLUE}Creating user $DB_USER...${NC}"
 echo "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" 
-sudo -u postgres psql --quiet -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" || true
-sudo -u postgres psql --quiet -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" || true
-sudo -u postgres psql --quiet -c "ALTER USER $DB_USER CREATEDB;" || true
+sudo -u postgres psql $QUIET -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" || true
+sudo -u postgres psql $QUIET -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" || true
+sudo -u postgres psql $QUIET -c "ALTER USER $DB_USER CREATEDB;" || true
 
 # Grant schema permissions
 echo -e "${BLUE}Setting up database permissions...${NC}"
-sudo -u postgres psql --quiet -d $DB_NAME -c "GRANT ALL ON SCHEMA public TO $DB_USER;" || true
-sudo -u postgres psql --quiet -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;" || true
-sudo -u postgres psql --quiet -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;" || true
-sudo -u postgres psql --quiet -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;" || true
-sudo -u postgres psql --quiet -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;" || true
+sudo -u postgres psql $QUIET -d $DB_NAME -c "GRANT ALL ON SCHEMA public TO $DB_USER;" || true
+sudo -u postgres psql $QUIET -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;" || true
+sudo -u postgres psql $QUIET -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;" || true
+sudo -u postgres psql $QUIET -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;" || true
+sudo -u postgres psql $QUIET -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;" || true
 
 echo -e "${BLUE}Loading database schema from $SCHEMA_TMP...${NC}"
 if [[ -f "$SCHEMA_TMP" ]]; then
-    sudo -u postgres psql --quiet -d $DB_NAME -f "$SCHEMA_TMP" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
+    sudo -u postgres psql $QUIET -d $DB_NAME -f "$SCHEMA_TMP" || echo -e "${YELLOW}Schema loading completed with warnings${NC}"
 else
     echo -e "${RED}Error: Schema file not found at $SCHEMA_TMP${NC}"
     exit 1
@@ -248,7 +251,7 @@ fi
 # Configure TimescaleDB if available
 if command -v timescaledb-tune &> /dev/null; then
     echo -e "${BLUE}Configuring TimescaleDB...${NC}"
-    timescaledb-tune --quiet --yes || echo -e "${YELLOW}TimescaleDB tuning skipped${NC}"
+    timescaledb-tune $QUIET --yes || echo -e "${YELLOW}TimescaleDB tuning skipped${NC}"
     systemctl restart $PG_SERVICE
     sleep 3
 fi
@@ -511,7 +514,7 @@ mkdir -p /root/$MESHTASTIC
 cd /root/$MESHTASTIC
 python3 -m venv base
 source base/bin/activate
-pip3 install --quiet -r "$APP_DIR/requirements.txt"
+pip3 install $QUIET -r "$APP_DIR/requirements.txt"
 python3 $APP_DIR/src/info-sources/$MESHTASTIC_PYTHON --config $ETC_DIR/config.json
 MESHTASTICCLIENTSH
 
@@ -575,7 +578,7 @@ else
     cd /root/$SCENARIO
     python3 -m venv base
     source base/bin/activate
-    pip3 install --quiet -r "$APP_DIR/requirements.txt"
+    pip3 install $QUIET -r "$APP_DIR/requirements.txt"
     python3 $APP_DIR/src/info-sources/$SCENARIO_PYTHON --config $ETC_DIR/config.json --assets \$ASSETS_FILE
 fi
 SCENARIOSH
@@ -626,13 +629,13 @@ sleep 5
 # Verify services are running
 echo -e "${BLUE}Verifying services...${NC}"
 
-if systemctl is-active --quiet $PG_SERVICE; then
+if systemctl is-active $QUIET $PG_SERVICE; then
     echo -e "${GREEN}✅ PostgreSQL $PG_VERSION is running${NC}"
 else
     echo -e "${RED}❌ PostgreSQL failed to start${NC}"
 fi
 
-if systemctl is-active --quiet nginx; then
+if systemctl is-active $QUIET nginx; then
     echo -e "${GREEN}✅ Nginx is running${NC}"  
 else
     echo -e "${RED}❌ Nginx failed to start${NC}"
@@ -640,7 +643,7 @@ else
     tail -n 10 /var/log/nginx/error.log || true
 fi
 
-if systemctl is-active --quiet $NAME; then
+if systemctl is-active $QUIET $NAME; then
     echo -e "${GREEN}✅ Situational Awareness System is running${NC}"
 else
     echo -e "${RED}❌ Situational Awareness System failed to start${NC}"
@@ -695,7 +698,7 @@ echo "• Test API: curl http://localhost:3000/api/health"
 echo "• Test Database: psql -h localhost -d $DB_NAME -U $DB_USER -c 'SELECT 1;'"
 echo ""
 
-if systemctl is-active --quiet $NAME && systemctl is-active --quiet nginx && systemctl is-active --quiet $PG_SERVICE; then
+if systemctl is-active $QUIET $NAME && systemctl is-active $QUIET nginx && systemctl is-active $QUIET $PG_SERVICE; then
     echo -e "${GREEN}🚨 All services running - Situational Awareness System Ready! 🚨${NC}"
 else
     echo -e "${YELLOW}⚠️ Some services may need attention. Check the status above.${NC}"
