@@ -251,7 +251,7 @@ async function loadAssets() {
         const data = await response.json();
         if (data.success) updateAssetMarkers(data.data);
     } catch (error) {
-        console.error("[app] Error loading assets:", error);
+        console.error("[app] Error loading assets:", error.message);
     }
 }
 
@@ -301,15 +301,14 @@ function updateAssetMarkers(assets) {
                     }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><img src="${asset.url}" width=300 height=300>`);
                     break; 
                 case 'ESV':
+                    console.log("Updating ESV marker")
                     const now_seconds = Math.floor(Date.now() / 1000);
                     const status_age_minutes = Math.floor((now_seconds - asset.last_update) / 60);
-                    var iconColor = COLORBLACK;
+                    var iconColor = COLORRED;
                     if (status_age_minutes < 20) {
                         iconColor = COLORGREEN;
                     } else if (status_age_minutes < 25) {
                         iconColor = COLORYELLOW;
-                    } else {
-                        iconColor = COLORRED;
                     }
                     const lastHeard = lastHeardFromString(status_age_minutes);
                     console.log(asset.asset_id,"last heard from", last_heard)

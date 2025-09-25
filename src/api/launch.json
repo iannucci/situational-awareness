@@ -1,0 +1,17 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "pwa-node", // or "node" for older versions
+			"request": "attach",
+			"name": "Attach to pa-sitrep",
+			"address": "pa-sitrep.local.mesh", // or "localhost" if using SSH tunnel
+			"port": 9229, // or the port you configured
+			"localRoot": "${workspaceFolder}",
+			"remoteRoot": "/opt/situational-awareness/src/api", // Path to your project on the remote machine
+			"skipFiles": [
+				"<node_internals>/**"
+			]
+		}
+	]
+}
