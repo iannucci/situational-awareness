@@ -282,8 +282,10 @@ function updateAssetMarkers(assets) {
                     break; 
                 case 'ESV':
                     const now_seconds = Math.floor(Date.now() / 1000);
+                    console.log("Now seconds:", now_seconds);
+                    console.log("Last update seconds:", asset.last_update);
                     const asset_age_minutes = Math.floor((now_seconds - asset.last_update) / 60);
-                    console.log("[app] Last update: " + asset.last_update + "Age in minutes: " + asset_age_minutes)
+                    console.log("[app] Last update:", asset.last_update, "Age in minutes: ", asset_age_minutes)
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
                     }).bindPopup(`<b>${asset.asset_id}</b><br/>Type: ${asset.type_code}<br/>Status: ${asset.status}`);
