@@ -86,6 +86,7 @@ done
 
 sudo systemctl stop $NAME.service 2> /dev/null
 sudo systemctl stop $MESHTASTIC.service 2> /dev/null
+sudo systemctl stop nginx 2> /dev/null
 
 if [ "$DB_PASSWORD" == "'none'" ]; then
     echo -e "${RED}Must specify a --password${NC}"
@@ -609,8 +610,8 @@ echo -e "${GREEN}✅ Nginx configuration test passed${NC}"
 echo -e "${BLUE}Restarting services...${NC}"
 systemctl restart $NAME
 nginx -t
-echo -e "${BLUE}Restarting nginx...${NC}"
-systemctl restart nginx
+echo -e "${BLUE}Starting nginx...${NC}"
+systemctl Start nginx
 systemctl enable nginx
 
 # Save configuration
