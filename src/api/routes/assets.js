@@ -28,7 +28,7 @@ router.get("/status", async (req, res) => {
                     tat.icon as icon,
                     ST_X(tal.location) as longitude,
                     ST_Y(tal.location) as latitude,
-                    tal.timestamp as last_update
+                    EXTRACT(EPOCH FROM tal.timestamp) as last_update
                 FROM tracked_assets ta
                 JOIN tracked_asset_types tat ON ta.type_code = tat.type_code
                 LEFT JOIN LATERAL (

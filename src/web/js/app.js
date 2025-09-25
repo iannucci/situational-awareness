@@ -230,7 +230,7 @@ function initMap() {
 
 async function loadIncidents() {
     try {
-        console.log("Loading incidents");
+        console.log("[app] Loading incidents");
         const response = await fetch(`${API_BASE}/incidents/active`);
         const data = await response.json();
         if (data.success) updateIncidentMarkers(data.data);
@@ -241,7 +241,7 @@ async function loadIncidents() {
 
 async function loadAssets() {
     try {
-        console.log("Loading assets");
+        console.log("[app] Loading assets");
         const response = await fetch(`${API_BASE}/assets/status`);
         const data = await response.json();
         if (data.success) updateAssetMarkers(data.data);
@@ -267,7 +267,7 @@ function updateAssetMarkers(assets) {
     assets.forEach(asset => {
         if (asset.longitude && asset.latitude) {
             var marker;
-            console.log("Updating marker for", asset.type_code);
+            console.log("[app] Updating marker for", asset.type_code);
             switch (asset.type_code) {
                 case 'BRIDGE':
                     const svgIcon = L.icon({
@@ -283,7 +283,7 @@ function updateAssetMarkers(assets) {
                 case 'ESV':
                     const now_seconds = Math.floor(Date.now() / 1000);
                     const asset_age_minutes = Math.floor((now_seconds - asset.last_update) / 60);
-                    console.log("Last update: " + asset.last_update + "Age in minutes: " + asset_age_minutes)
+                    console.log("[app] Last update: " + asset.last_update + "Age in minutes: " + asset_age_minutes)
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
                     }).bindPopup(`<b>${asset.asset_id}</b><br/>Type: ${asset.type_code}<br/>Status: ${asset.status}`);
