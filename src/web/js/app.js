@@ -132,6 +132,13 @@ function updateAssetMarkers(assets) {
                         color: "#e74c3c" 
                     }).bindPopup(`<b>${asset.type_code}</b><br/>${asset.description}<br/>Severity: ${asset.severity}<br/><img src="${asset.url}" width=300 height=300>`);
                     break; 
+                case 'ESV':
+                    const now_seconds = Math.floor(Date.now() / 1000);
+                    asset_age_minutes = Math.floor((now_seconds - asset.last_update) / 60);
+                    console.log("Last update: " + asset.last_update + "Age in minutes: " + asset_age_minutes)
+                    marker = L.circleMarker([asset.latitude, asset.longitude], {
+                        color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
+                    }).bindPopup(`<b>${asset.asset_id}</b><br/>Type: ${asset.type_code}<br/>Status: ${asset.status}`);
                 default:
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
