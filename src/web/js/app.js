@@ -69,29 +69,69 @@ const API_BASE = "/api/v1";
         originalConsoleLog.apply(console, args);
 
         // Send the log data to the server
-        sendLogsToServer("LOG", args);
+        sendLogsToServerL(args);
     };
 
     console.info = function (...args) {
-        // Call the original console.log to maintain browser console output
-        originalConsoleLog.apply(console, args);
+        // Call the original console.info to maintain browser console output
+        originalConsoleInfo.apply(console, args);
 
         // Send the log data to the server
-        sendLogsToServer("INFO", args);
+        sendLogsToServerI(args);
     };
 
     console.error = function (...args) {
-        // Call the original console.log to maintain browser console output
-        originalConsoleLog.apply(console, args);
+        // Call the original console.error to maintain browser console output
+        originalConsoleError.apply(console, args);
 
         // Send the log data to the server
-        sendLogsToServer("ERROR", args);
+        sendLogsToServerE(args);
     };
 
-    function sendLogsToServer(level, logs) {
+    function sendLogsToServerL(level, logs) {
         // You can format the logs as needed (e.g., convert to JSON string)
         const logData = JSON.stringify({
-            level: level,
+            level: "LOG",
+            timestamp: new Date().toISOString(),
+            message: logs.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
+        });
+
+        // Send the data using fetch or XMLHttpRequest
+        fetch(`${API_BASE}/logs/entry`, { // Replace with your server-side log endpoint
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: logData
+        }).catch(error => {
+            originalConsoleLog('[app] Error sending logs to server:', error);
+        });
+    }
+
+    function sendLogsToServerI(level, logs) {
+        // You can format the logs as needed (e.g., convert to JSON string)
+        const logData = JSON.stringify({
+            level: "INFO",
+            timestamp: new Date().toISOString(),
+            message: logs.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
+        });
+
+        // Send the data using fetch or XMLHttpRequest
+        fetch(`${API_BASE}/logs/entry`, { // Replace with your server-side log endpoint
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: logData
+        }).catch(error => {
+            originalConsoleLog('[app] Error sending logs to server:', error);
+        });
+    }
+
+    function sendLogsToServerE(level, logs) {
+        // You can format the logs as needed (e.g., convert to JSON string)
+        const logData = JSON.stringify({
+            level: "ERROR",
             timestamp: new Date().toISOString(),
             message: logs.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
         });
