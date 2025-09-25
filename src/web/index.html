@@ -108,8 +108,11 @@
             border-radius: 50%;
         }
         
-        .incident { background: #e74c3c; }
+        .incident { background: #3498db; }
         .assets { background: #3498db; }
+        .esvs-online { background: #34db34; }
+        .esvs-recent { background: #d8db34; }
+        .esvs-offline { background: #db3434; }
     </style>
 </head>
 <body>
@@ -141,8 +144,16 @@
                     <span>Active Incidents</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-icon assets"></div>
-                    <span>Assets</span>
+                    <div class="legend-icon esvs-online"></div>
+                    <span>ESVs - online</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon esvs-recent"></div>
+                    <span>ESVs - recent</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon esvs-offline"></div>
+                    <span>ESVs - offline</span>
                 </div>
             </div>
         </div>
