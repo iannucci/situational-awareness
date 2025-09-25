@@ -265,9 +265,9 @@ function updateIncidentMarkers(incidents) {
 function updateAssetMarkers(assets) {
     assetLayer.clearLayers();
     assets.forEach(asset => {
-        console.log("Updating marker for asset ", asset);
         if (asset.longitude && asset.latitude) {
             var marker;
+            console.log("Updating marker for asset ", asset.type_code);
             switch (asset.type_code) {
                 case 'BRIDGE':
                     const svgIcon = L.icon({
