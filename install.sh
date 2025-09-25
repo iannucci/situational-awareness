@@ -611,7 +611,7 @@ echo -e "${BLUE}Restarting services...${NC}"
 systemctl restart $NAME
 nginx -t
 echo -e "${BLUE}Starting nginx...${NC}"
-systemctl Start nginx
+systemctl start nginx
 systemctl enable nginx
 
 # Save configuration
