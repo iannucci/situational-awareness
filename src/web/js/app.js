@@ -312,11 +312,11 @@ function updateAssetMarkers(assets) {
                     } else if (status_age_minutes < 25) {
                         iconColor = COLORYELLOW;
                     }
-                    const lastHeard = lastHeardFromString(status_age_minutes);
+                    const last_heard = lastHeardFromString(status_age_minutes);
                     console.log(asset.asset_id,"last heard from", last_heard)
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: COLORBLACK, fillColor: iconColor, fillOpacity: 0.8, radius: 6
-                    }).bindPopup(`<b>${asset.asset_id}</b><br/>Last heard from: ${lastHeard})}<br/>Status: ${asset.status}`);
+                    }).bindPopup(`<b>${asset.asset_id}</b><br/>Last heard from: ${last_heard})}<br/>Status: ${asset.status}`);
                 default:
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
