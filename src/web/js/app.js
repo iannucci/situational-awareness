@@ -42,6 +42,11 @@ const PALO_ALTO_BOUNDING_BOX = {
 
 const API_BASE = "/api/v1";
 
+const COLORRED = "#db3434ff";
+const COLORYELLOW = "#d8db34ff";
+const COLORGREEN = "#34db34ff";
+const COLORBLACK = "#000000ff";
+
 (function () {
     const originalConsoleLog = console.log;
     const originalConsoleInfo = console.info;
@@ -262,6 +267,22 @@ function updateIncidentMarkers(incidents) {
     });
 }
 
+function lastHeardFromString(minutes) {
+    if (minutes < 1) {
+        return "just now";
+    } else if (minutes < 2) {
+        return "one minute ago";
+    } else if (minutes < 60) {
+        return minutes + "minutes ago";
+    } else if (minutes < 70) {
+        return "about an hour ago";
+    } else if (minutes < 90) {
+        return "about an hour and a half ago"
+    } else if (minutes < 120) {
+        return "less two hours ago";
+    } else return "more than two hours ago";
+}
+
 function updateAssetMarkers(assets) {
     assetLayer.clearLayers();
     assets.forEach(asset => {
@@ -282,13 +303,20 @@ function updateAssetMarkers(assets) {
                     break; 
                 case 'ESV':
                     const now_seconds = Math.floor(Date.now() / 1000);
-                    console.log("Now seconds:", now_seconds);
-                    console.log("Last update seconds:", asset.last_update);
+                    // console.log("Now seconds:", now_seconds);
+                    // console.log("Last update seconds:", asset.last_update);
                     const asset_age_minutes = Math.floor((now_seconds - asset.last_update) / 60);
-                    console.log("[app] Last update:", asset.last_update, "Age in minutes: ", asset_age_minutes)
+                    // console.log("[app] Last update:", asset.last_update, "Age in minutes: ", asset_age_minutes)
+                    if (asset_age_minutes < 20) {
+                        iconColor = COLORGREEN;
+                    } else if (asset_age_minutes < 25) {
+                        iconColor = COLORYELLOW;
+                    } else {
+                        iconColor = COLORRED;
+                    }
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
-                        color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
-                    }).bindPopup(`<b>${asset.asset_id}</b><br/>Type: ${asset.type_code}<br/>Status: ${asset.status}`);
+                        color: COLORBLACK, fillColor: iconColor, fillOpacity: 0.8, radius: 6
+                    }).bindPopup(`<b>${asset.asset_id}</b><br/>Last heard from: ${lastHeardFromString(asset_age_minutes)}<br/>Status: ${asset.status}`);
                 default:
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
