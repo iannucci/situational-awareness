@@ -275,7 +275,7 @@ function lastHeardFromString(minutes) {
     } else if (minutes < 2) {
         return "one minute ago";
     } else if (minutes < 60) {
-        return minutes + "minutes ago";
+        return minutes + " minutes ago";
     } else if (minutes < 70) {
         return "about an hour ago";
     } else if (minutes < 90) {
@@ -316,7 +316,7 @@ function updateAssetMarkers(assets) {
                     console.log("[app]", asset.asset_id,"last heard from", last_heard)
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: COLORBLACK, fillColor: iconColor, fillOpacity: 0.8, radius: 6
-                    }).bindPopup(`<b>${asset.asset_id}</b><br/>Last heard from: ${last_heard})}<br/>Status: ${asset.status}`);
+                    }).bindPopup(`<b>${asset.asset_id}</b><br/>Last heard from: ${last_heard}<br/>Status: ${asset.status}`);
                     break;
                 default:
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
