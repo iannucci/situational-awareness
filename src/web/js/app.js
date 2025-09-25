@@ -42,31 +42,61 @@ const PALO_ALTO_BOUNDING_BOX = {
 
 const API_BASE = "/api/v1";
 
-function sendLogToServer(logEntry) {
-    fetch(`${API_BASE}/logs/entry`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(logEntry),
-    })
-        .then(response => {
-            if (!response.ok) {
-                console.error('Failed to send log:', response.statusText);
-            }
-        })
-        .catch(error => {
-            console.error('Error sending log:', error);
-        });
-}
+// function sendLogToServer(logEntry) {
+//     fetch(`${API_BASE}/logs/entry`, {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify(logEntry),
+//     })
+//         .then(response => {
+//             if (!response.ok) {
+//                 console.error('Failed to send log:', response.statusText);
+//             }
+//         })
+//         .catch(error => {
+//             console.error('Error sending log:', error);
+//         });
+// }
 
-const originalConsoleLog = console.log;
-console.log = function (arg) {
-    // Send arg to server
-    // sendLogToServer({ level: 'log', message: JSON.stringify(args.join(' ')), timestamp: new Date().toISOString() });
-    sendLogToServer({ level: 'log', arg, timestamp: new Date().toISOString() });
-    originalConsoleLog.apply(console, args); // Call original console.log
-};
+(function () {
+    const originalConsoleLog = console.log;
+
+    console.log = function (...args) {
+        // Call the original console.log to maintain browser console output
+        originalConsoleLog.apply(console, args);
+
+        // Send the log data to the server
+        sendLogsToServer(args);
+    };
+
+    function sendLogsToServer(logs) {
+        // You can format the logs as needed (e.g., convert to JSON string)
+        const logData = JSON.stringify({
+            timestamp: new Date().toISOString(),
+            message: logs.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
+        });
+
+        // Send the data using fetch or XMLHttpRequest
+        fetch(`${API_BASE}/logs/entry`, { // Replace with your server-side log endpoint
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: logData
+        }).catch(error => {
+            originalConsoleLog('[app] Error sending logs to server:', error);
+        });
+    }
+})();
+
+// const originalConsoleLog = console.log;
+// console.log = function (...arg) {
+//     // Send arg to server
+//     sendLogToServer({ level: 'log', message: JSON.stringify(args.join(' ')), timestamp: new Date().toISOString() });
+//     originalConsoleLog.apply(console, arg); // Call original console.log
+// };
 
 function initMap() {
     map = L.map("map", {

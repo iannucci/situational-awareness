@@ -4,7 +4,7 @@ const router = express.Router();
 router.post('/entry', async (req, res) => {
 	console.log(req.body);
 	message = req.body.message;
-	console.log("<CLIENT> " + message);
+	console.log("<CLIENT> ", message);
 	return res.json({
 		success: true,
 		data: [],
