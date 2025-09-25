@@ -62,18 +62,36 @@ const API_BASE = "/api/v1";
 
 (function () {
     const originalConsoleLog = console.log;
+    const originalConsoleInfo = console.info;
+    const originalConsoleError = console.error;
 
     console.log = function (...args) {
+        originalConsoleLog.apply(console, args);
+
+        // Send the log data to the server
+        sendLogsToServer("LOG", args);
+    };
+
+    console.info = function (...args) {
         // Call the original console.log to maintain browser console output
         originalConsoleLog.apply(console, args);
 
         // Send the log data to the server
-        sendLogsToServer(args);
+        sendLogsToServer("INFO", args);
     };
 
-    function sendLogsToServer(logs) {
+    console.error = function (...args) {
+        // Call the original console.log to maintain browser console output
+        originalConsoleLog.apply(console, args);
+
+        // Send the log data to the server
+        sendLogsToServer("ERROR", args);
+    };
+
+    function sendLogsToServer(level, logs) {
         // You can format the logs as needed (e.g., convert to JSON string)
         const logData = JSON.stringify({
+            level: level,
             timestamp: new Date().toISOString(),
             message: logs.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
         });
@@ -151,7 +169,6 @@ async function loadAssets() {
     try {
         const response = await fetch(`${API_BASE}/assets/status`);
         const data = await response.json();
-        console.log(data);
         if (data.success) updateAssetMarkers(data.data);
     } catch (error) {
         console.error("[app] Error loading assets:", error);
@@ -173,7 +190,6 @@ function updateIncidentMarkers(incidents) {
 function updateAssetMarkers(assets) {
     assetLayer.clearLayers();
     assets.forEach(asset => {
-        console.log(asset);
         if (asset.longitude && asset.latitude) {
             var marker;
             switch (asset.type_code) {

@@ -5,7 +5,7 @@ router.post('/entry', async (req, res) => {
 	console.log(req.body);
 	level = req.body.level
 	message = req.body.message;
-	console.log("<CLIENT> ", level.toUpperCase(), message);
+	console.log("<CLIENT> ", level.toUpperCase(), " ", message);
 	return res.json({
 		success: true,
 		data: [],
