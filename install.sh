@@ -216,29 +216,29 @@ fi
 
 # Create database and user
 echo -e "${BLUE}Creating database...${NC}"
-sudo -u postgres psql $QUIET -c "DROP database IF EXISTS $DB_NAME WITH (FORCE);" || true
+sudo -u postgres psql $QUIET -c "DROP database IF EXISTS $DB_NAME WITH (FORCE);" $ORTRUE
 sudo -u postgres createdb $DB_NAME || echo -e "${YELLOW}Database may already exist${NC}"
-sudo -u postgres psql $QUIET -c "DROP OWNED BY $DB_USER;" || true
+sudo -u postgres psql $QUIET -c "DROP OWNED BY $DB_USER;"
 
 # echo -e "${BLUE}Dropping user $DB_USER if exists...${NC}"
 # sudo -u postgres psql -c "SELECT 'DROP OWNED BY $DB_USER' FROM pg_roles WHERE rolname = '$DB_USER' \gexec"
 # echo $drop_owned_by_command | psql -U postgres $DB_NAME
 
-sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" || true
+sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;"
 
 echo -e "${BLUE}Creating user $DB_USER...${NC}"
 echo "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" 
-sudo -u postgres psql $QUIET -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" || true
-sudo -u postgres psql $QUIET -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;" || true
-sudo -u postgres psql $QUIET -c "ALTER USER $DB_USER CREATEDB;" || true
+sudo -u postgres psql $QUIET -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';"
+sudo -u postgres psql $QUIET -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
+sudo -u postgres psql $QUIET -c "ALTER USER $DB_USER CREATEDB;"
 
 # Grant schema permissions
 echo -e "${BLUE}Setting up database permissions...${NC}"
-sudo -u postgres psql $QUIET -d $DB_NAME -c "GRANT ALL ON SCHEMA public TO $DB_USER;" || true
-sudo -u postgres psql $QUIET -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;" || true
-sudo -u postgres psql $QUIET -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;" || true
-sudo -u postgres psql $QUIET -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;" || true
-sudo -u postgres psql $QUIET -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;" || true
+sudo -u postgres psql $QUIET -d $DB_NAME -c "GRANT ALL ON SCHEMA public TO $DB_USER;"
+sudo -u postgres psql $QUIET -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;"
+sudo -u postgres psql $QUIET -d $DB_NAME -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;"
+sudo -u postgres psql $QUIET -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;"
+sudo -u postgres psql $QUIET -d $DB_NAME -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;"
 
 echo -e "${BLUE}Loading database schema from $SCHEMA_TMP...${NC}"
 if [[ -f "$SCHEMA_TMP" ]]; then
@@ -349,7 +349,7 @@ WEB_ROOT="/var/www/$NAME"
 echo -e "${BLUE}Setting up web root at $WEB_ROOT...${NC}"
 mkdir -p "$WEB_ROOT"
 cp -r "$WEB_DIR/"* "$WEB_ROOT/"
-chown -R www-data:www-data "$WEB_ROOT" 2>/dev/null || chown -R nginx:nginx "$WEB_ROOT" 2>/dev/null || true
+chown -R www-data:www-data "$WEB_ROOT" 2>/dev/null || chown -R nginx:nginx "$WEB_ROOT" 2>/dev/null
 chmod -R 644 "$WEB_ROOT"
 find "$WEB_ROOT" -type d -exec chmod 755 {} \;
 
@@ -496,7 +496,7 @@ else
     # Disable default server block in main config if it exists
     if [[ -f /etc/nginx/nginx.conf ]]; then
         # Comment out any existing server blocks in main config
-        sed -i '/^[[:space:]]*server[[:space:]]*{/,/^[[:space:]]*}/s/^/#/' /etc/nginx/nginx.conf 2>/dev/null || true
+        sed -i '/^[[:space:]]*server[[:space:]]*{/,/^[[:space:]]*}/s/^/#/' /etc/nginx/nginx.conf 2>/dev/null
     fi
     
     echo -e "${GREEN}✅ Configured nginx (RHEL/CentOS style)${NC}"
@@ -602,7 +602,7 @@ if ! nginx -t; then
     
     # Show nginx error
     echo -e "${BLUE}Nginx test output:${NC}"
-    nginx -t 2>&1 || true
+    nginx -t 2>&1
     
     exit 1
 fi
@@ -640,7 +640,7 @@ if systemctl is-active $QUIET nginx; then
 else
     echo -e "${RED}❌ Nginx failed to start${NC}"
     echo "Checking nginx error log:"
-    tail -n 10 /var/log/nginx/error.log || true
+    tail -n 10 /var/log/nginx/error.log
 fi
 
 if systemctl is-active $QUIET $NAME; then
@@ -648,9 +648,9 @@ if systemctl is-active $QUIET $NAME; then
 else
     echo -e "${RED}❌ Situational Awareness System failed to start${NC}"
     echo "Checking service status:"
-    systemctl status $NAME --no-pager || true
+    systemctl status $NAME --no-pager
     echo "Checking logs:"
-    journalctl -u $NAME -n 20 --no-pager || true
+    journalctl -u $NAME -n 20 --no-pager
 fi
 
 # Test API health
