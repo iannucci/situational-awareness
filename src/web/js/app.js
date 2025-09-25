@@ -248,9 +248,9 @@ async function loadAssets() {
     try {
         console.log("[app] Loading assets");
         const response = await fetch(`${API_BASE}/assets/status`);
-        console.log("[app] 1", response)
+        // console.log("[app] 1", response)
         const data = await response.json();
-        console.log("[app] 2", data)
+        // console.log("[app] 2", data)
         if (data.success) updateAssetMarkers(data.data);
     } catch (error) {
         console.error("[app] Error loading assets:", error.message);

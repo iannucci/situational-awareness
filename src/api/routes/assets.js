@@ -41,7 +41,7 @@ router.get("/status", async (req, res) => {
                 ) tal ON true
             `;
             const result = await pool.query(query);
-            console.log("[assets] Database query result:", result.rows)
+            // console.log("[assets] Database query result:", result.rows)
             res.json({
                 success: true,
                 data: result.rows,
