@@ -202,7 +202,7 @@ function initMap() {
         attributionControl: true
     });
     
-    map.setMaxBounds(PALO_ALTO_BOUNDING_BOX.bounds);
+    // map.setMaxBounds(PALO_ALTO_BOUNDING_BOX.bounds);
     
     const tileLayer = L.tileLayer(TILE_SERVER_URL, {
         maxZoom: 18,
