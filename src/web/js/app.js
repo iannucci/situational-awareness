@@ -88,7 +88,7 @@ const API_BASE = "/api/v1";
         sendLogsToServerE(args);
     };
 
-    function sendLogsToServerL(level, logs) {
+    function sendLogsToServerL(logs) {
         // You can format the logs as needed (e.g., convert to JSON string)
         const logData = JSON.stringify({
             level: "LOG",
@@ -108,7 +108,7 @@ const API_BASE = "/api/v1";
         });
     }
 
-    function sendLogsToServerI(level, logs) {
+    function sendLogsToServerI(logs) {
         // You can format the logs as needed (e.g., convert to JSON string)
         const logData = JSON.stringify({
             level: "INFO",
@@ -128,7 +128,7 @@ const API_BASE = "/api/v1";
         });
     }
 
-    function sendLogsToServerD(level, logs) {
+    function sendLogsToServerD(logs) {
         // You can format the logs as needed (e.g., convert to JSON string)
         const logData = JSON.stringify({
             level: "DEBUG",
@@ -148,7 +148,7 @@ const API_BASE = "/api/v1";
         });
     }
 
-    function sendLogsToServerW(level, logs) {
+    function sendLogsToServerW(logs) {
         // You can format the logs as needed (e.g., convert to JSON string)
         const logData = JSON.stringify({
             level: "WARN",
@@ -168,7 +168,7 @@ const API_BASE = "/api/v1";
         });
     }
 
-    function sendLogsToServerE(level, logs) {
+    function sendLogsToServerE(logs) {
         // You can format the logs as needed (e.g., convert to JSON string)
         const logData = JSON.stringify({
             level: "ERROR",
