@@ -4,7 +4,8 @@ const router = express.Router();
 router.post('/entry', async (req, res) => {
 	level = req.body.level
 	message = req.body.message;
-	console.log("[" + req.ip + "] " + message);
+	ip = req.ip.replace("::ffff:", '');
+	console.log("[" + ip + "] " + message);
 	return res.json({
 		success: true,
 		data: [],
