@@ -61,9 +61,10 @@ function sendLogToServer(logEntry) {
 }
 
 const originalConsoleLog = console.log;
-console.log = function (...args) {
-    // Send args to server
-    sendLogToServer({ level: 'log', message: JSON.stringify(args.join(' ')), timestamp: new Date().toISOString() });
+console.log = function (arg) {
+    // Send arg to server
+    // sendLogToServer({ level: 'log', message: JSON.stringify(args.join(' ')), timestamp: new Date().toISOString() });
+    sendLogToServer({ level: 'log', arg, timestamp: new Date().toISOString() });
     originalConsoleLog.apply(console, args); // Call original console.log
 };
 
