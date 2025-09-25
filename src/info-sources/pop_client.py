@@ -13,7 +13,7 @@ from email.parser import BytesParser
 from email import message_from_bytes
 from email.policy import default
 
-DEFAULT_CFG = "config.json"
+DEFAULT_CFG = "/etc/situational-awareness/config.json"
 
 
 def build_logger(level: str):

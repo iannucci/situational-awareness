@@ -42,27 +42,11 @@ const PALO_ALTO_BOUNDING_BOX = {
 
 const API_BASE = "/api/v1";
 
-// function sendLogToServer(logEntry) {
-//     fetch(`${API_BASE}/logs/entry`, {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify(logEntry),
-//     })
-//         .then(response => {
-//             if (!response.ok) {
-//                 console.error('Failed to send log:', response.statusText);
-//             }
-//         })
-//         .catch(error => {
-//             console.error('Error sending log:', error);
-//         });
-// }
-
 (function () {
     const originalConsoleLog = console.log;
     const originalConsoleInfo = console.info;
+    const originalConsoleDebug = console.debug;
+    const originalConsoleWarn = console.warn;
     const originalConsoleError = console.error;
 
     console.log = function (...args) {
@@ -78,6 +62,22 @@ const API_BASE = "/api/v1";
 
         // Send the log data to the server
         sendLogsToServerI(args);
+    };
+
+    console.debug = function (...args) {
+        // Call the original console.debug to maintain browser console output
+        originalConsoleDebug.apply(console, args);
+
+        // Send the log data to the server
+        sendLogsToServerD(args);
+    };
+
+    console.warn = function (...args) {
+        // Call the original console.warn to maintain browser console output
+        originalConsoleWarn.apply(console, args);
+
+        // Send the log data to the server
+        sendLogsToServerW(args);
     };
 
     console.error = function (...args) {
@@ -128,6 +128,46 @@ const API_BASE = "/api/v1";
         });
     }
 
+    function sendLogsToServerD(level, logs) {
+        // You can format the logs as needed (e.g., convert to JSON string)
+        const logData = JSON.stringify({
+            level: "DEBUG",
+            timestamp: new Date().toISOString(),
+            message: logs.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
+        });
+
+        // Send the data using fetch or XMLHttpRequest
+        fetch(`${API_BASE}/logs/entry`, { // Replace with your server-side log endpoint
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: logData
+        }).catch(error => {
+            originalConsoleLog('[app] Error sending logs to server:', error);
+        });
+    }
+
+    function sendLogsToServerW(level, logs) {
+        // You can format the logs as needed (e.g., convert to JSON string)
+        const logData = JSON.stringify({
+            level: "WARN",
+            timestamp: new Date().toISOString(),
+            message: logs.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
+        });
+
+        // Send the data using fetch or XMLHttpRequest
+        fetch(`${API_BASE}/logs/entry`, { // Replace with your server-side log endpoint
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: logData
+        }).catch(error => {
+            originalConsoleLog('[app] Error sending logs to server:', error);
+        });
+    }
+
     function sendLogsToServerE(level, logs) {
         // You can format the logs as needed (e.g., convert to JSON string)
         const logData = JSON.stringify({
@@ -148,13 +188,6 @@ const API_BASE = "/api/v1";
         });
     }
 })();
-
-// const originalConsoleLog = console.log;
-// console.log = function (...arg) {
-//     // Send arg to server
-//     sendLogToServer({ level: 'log', message: JSON.stringify(args.join(' ')), timestamp: new Date().toISOString() });
-//     originalConsoleLog.apply(console, arg); // Call original console.log
-// };
 
 function initMap() {
     map = L.map("map", {
@@ -197,6 +230,7 @@ function initMap() {
 
 async function loadIncidents() {
     try {
+        console.log("Loading incidents");
         const response = await fetch(`${API_BASE}/incidents/active`);
         const data = await response.json();
         if (data.success) updateIncidentMarkers(data.data);
@@ -207,6 +241,7 @@ async function loadIncidents() {
 
 async function loadAssets() {
     try {
+        console.log("Loading assets");
         const response = await fetch(`${API_BASE}/assets/status`);
         const data = await response.json();
         if (data.success) updateAssetMarkers(data.data);
@@ -230,6 +265,7 @@ function updateIncidentMarkers(incidents) {
 function updateAssetMarkers(assets) {
     assetLayer.clearLayers();
     assets.forEach(asset => {
+        console.log("Updating marker for asset ", asset);
         if (asset.longitude && asset.latitude) {
             var marker;
             switch (asset.type_code) {
@@ -246,7 +282,7 @@ function updateAssetMarkers(assets) {
                     break; 
                 case 'ESV':
                     const now_seconds = Math.floor(Date.now() / 1000);
-                    asset_age_minutes = Math.floor((now_seconds - asset.last_update) / 60);
+                    const asset_age_minutes = Math.floor((now_seconds - asset.last_update) / 60);
                     console.log("Last update: " + asset.last_update + "Age in minutes: " + asset_age_minutes)
                     marker = L.circleMarker([asset.latitude, asset.longitude], {
                         color: "#3498db", fillColor: "#3498db", fillOpacity: 0.8, radius: 6
