@@ -281,7 +281,7 @@ function lastHeardFromString(minutes) {
     } else if (minutes < 90) {
         return "about an hour and a half ago"
     } else if (minutes < 120) {
-        return "less two hours ago";
+        return "less than two hours ago";
     } else return "more than two hours ago";
 }
 

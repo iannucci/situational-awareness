@@ -46,6 +46,48 @@ CREATE TABLE IF NOT EXISTS incidents (
     CONSTRAINT fk_incidents_type FOREIGN KEY (incident_type_id) REFERENCES incident_types(id)
 );
 
+-- First create the domain
+CREATE DOMAIN US_PHONE_NUMBER AS VARCHAR(10) CHECK (VALUE ~ '^[0-9]{10}$');
+
+-- Then create the table
+CREATE TABLE IF NOT EXISTS damage (
+ id SERIAL PRIMARY KEY,
+ msg_no TEXT NOT NULL,
+ date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+ handling TEXT NOT NULL CHECK (handling IN ('Immediate', 'Priority', 'Routine')),
+ to_ics_position TEXT NOT NULL,
+ to_location TEXT NOT NULL,
+ to_name TEXT NOT NULL,
+ to_contact TEXT NOT NULL,
+ from_ics_position TEXT NOT NULL,
+ from_location TEXT NOT NULL,
+ from_name TEXT NOT NULL,
+ from_contact TEXT NOT NULL,
+ jurisdiction TEXT NOT NULL CHECK (jurisdiction IN ('Palo Alto', 'Mountain View', 'Los Altos', 'Menlo Park')),
+ address TEXT NOT NULL,
+ unit_suite TEXT,
+ type_structure TEXT NOT NULL CHECK (type_structure IN ('Single Family', 'Mobile Home', 'Non-Profit Orgs', 'Multi-Family', 'Business','Outbuilding')),
+ stories INTEGER CHECK (stories > 0),
+ own_rent TEXT NOT NULL CHECK (own_rent IN ('Own', 'Rent')),
+ type_damage_flooding BOOLEAN NOT NULL DEFAULT FALSE,
+ type_damage_exterior BOOLEAN NOT NULL DEFAULT FALSE,
+ type_damage_structural BOOLEAN NOT NULL DEFAULT FALSE,
+ type_damage_other BOOLEAN NOT NULL DEFAULT FALSE,
+ basement BOOLEAN NOT NULL DEFAULT FALSE,
+ damage_class TEXT NOT NULL CHECK (damage_class IN ('Destroyed', 'No Visible Damage', 'Major', 'Affected')),
+ tag TEXT NOT NULL CHECK (tag IN ('Green', 'Yellow', 'Red')),
+ insurance BOOLEAN NOT NULL DEFAULT FALSE,
+ estimate INTEGER CHECK (estimate >= 0),
+ comments TEXT DEFAULT 'None',
+ contact_name TEXT DEFAULT 'Unknown',
+ contact_phone US_PHONE_NUMBER DEFAULT '0000000000',
+ op_relay_rcvd TEXT,
+ op_relay_sent TEXT,
+ op_name TEXT,
+ op_call TEXT NOT NULL CHECK (op_call ~ '^(A[A-L]|K[A-Z]|N[A-Z]|W[A-Z]|K|N|W){1}\d{1}[A-Z]{1,3}$'),
+ op_time TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Add incident_id generation function
 CREATE OR REPLACE FUNCTION generate_incident_id() RETURNS TEXT AS $$
 BEGIN
