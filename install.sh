@@ -506,16 +506,23 @@ fi
 # Clean up temporary file
 rm -f /tmp/situational-awareness-nginx.conf
 
+echo -e "${BLUE}Creating Python virtual environment for root...${NC}"
+mkdir -p /root/$NAME
+cd /root/$NAME
+python3 -m venv base
+source base/bin/activate
+pip3 install $QUIET -r "$APP_DIR/requirements.txt"
+cd /root
+
 echo -e "${BLUE}Creating $MESHTASTIC.sh...${NC}"
 
 cat > "$APP_DIR/src/info-sources/$MESHTASTIC.sh" << MESHTASTICCLIENTSH
 #!/bin/bash
 
+cd /root/$NAME
+source base/bin/activate
 mkdir -p /root/$MESHTASTIC
 cd /root/$MESHTASTIC
-python3 -m venv base
-source base/bin/activate
-pip3 install $QUIET -r "$APP_DIR/requirements.txt"
 python3 $APP_DIR/src/info-sources/$MESHTASTIC_PYTHON --config $ETC_DIR/config.json
 MESHTASTICCLIENTSH
 
