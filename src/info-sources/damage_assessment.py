@@ -445,8 +445,6 @@ class DamageAssessment:
         # Handle datetime split into date (1a) and time (1b)
         if hasattr(self, "datetime"):
             try:
-                from dateutil import parser as date_parser
-
                 dt = date_parser.parse(self.datetime)
                 date_str = dt.strftime("%m/%d/%Y")
                 time_str = dt.strftime("%H:%M")
@@ -465,8 +463,6 @@ class DamageAssessment:
         # Handle op_date split into OpDate and OpTime
         if hasattr(self, "op_date"):
             try:
-                from dateutil import parser as date_parser
-
                 dt = date_parser.parse(self.op_date)
                 date_str = dt.strftime("%m/%d/%Y")
                 time_str = dt.strftime("%H:%M")
@@ -556,8 +552,6 @@ class DamageAssessment:
         Raises:
                                         Exception: If database operation fails
         """
-        import psycopg2
-        from dateutil import parser as date_parser
 
         try:
             with connection.cursor() as cursor:
@@ -647,8 +641,6 @@ def retrieve_from_database(connection, op_call=None, start_time=None, end_time=N
     Raises:
                                     Exception: If database operation fails
     """
-    import psycopg2
-    from dateutil import parser as date_parser
 
     try:
         with connection.cursor() as cursor:
@@ -1028,8 +1020,6 @@ def _combine_datetime(date_str: str, time_str: str, field_name: str) -> str:
 
     # Validate that the combined string can be parsed
     try:
-        from dateutil import parser as date_parser
-
         date_parser.parse(datetime_str)
         return datetime_str
     except Exception as e:
@@ -1078,13 +1068,13 @@ OpTime: [17:53]
 """
 
 
-DEFAULT_CFG = "config.json"
+DEFAULT_CFG = "/etc/situational-awareness/config.json"
 
 
 # When invoked, pass the --config, typically pointing to
 # /etc/{installation-name}/config.json
 def main():
-    ap = argparse.ArgumentParser(description="meshtastic-client")
+    ap = argparse.ArgumentParser(description="damage")
     ap.add_argument(
         "--config",
         default=DEFAULT_CFG,
@@ -1096,8 +1086,8 @@ def main():
     config_repo.load("main", args.config)
     config = config_repo.config("main")
 
-    logger = build_logger(config["meshtastic"].get("log_level", "INFO"))
-    logger.info("✅ [Meshtastic] Logging is active")
+    logger = build_logger(config["damage"].get("log_level", "INFO"))
+    logger.info("✅ [Damage] Logging is active")
 
     database = DamageDB(config)
 
@@ -1107,10 +1097,11 @@ def main():
     logger.info(a.to_message_format())
 
     try:
-        db = DamageDB(config)
-        conn = db.conn
+        conn = database.conn
         a.save_to_database(conn)
-        db.close()
+
+        for damage_assessment in retrieve_from_database(conn):
+            logger.info(damage_assessment.to_message_format())
 
     except KeyboardInterrupt:
         logger.info("\n🚨 [Damage] Exiting.")
