@@ -3,3 +3,4 @@ meshtastic
 requests
 pypubsub
 mattermostdriver
+dateutil
