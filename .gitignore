@@ -12,3 +12,7 @@ config.json
 *.pyc
 
 *.qgz
+
+database/PaloAlto.csv
+
+database/PaloAlto.xlsx
